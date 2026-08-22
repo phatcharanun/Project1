@@ -28,6 +28,52 @@ body {
 	line-height: 1.6;
 }
 
+header {
+	margin-bottom: 2rem;
+	padding: 2rem 1rem;
+	background: var(--primary);
+	color: #fff;
+	text-align: center;
+}
+
+header h1 {
+	font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+main.container {
+	display: grid;
+	gap: 1.5rem;
+	padding-bottom: 2rem;
+}
+
+.card h2 {
+	margin-bottom: 1rem;
+}
+
+.video-container {
+	margin-bottom: 1rem;
+	text-align: center;
+}
+
+.video-container video {
+	margin-inline: auto;
+	border-radius: var(--radius);
+}
+
+.button-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.info-box {
+	margin-top: 1rem;
+	border-left: 4px solid var(--primary);
+	background: #eff6ff;
+	padding: 1rem;
+}
+
 img {
 	display: block;
 	max-width: 100%;
