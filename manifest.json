@@ -1,21 +1,21 @@
 {
-	"short_name": "CameraGPSApp",
-	"name": "PWA Camera & Geofence Application",
-	"icons": [
-		{
-			"src": "icons/icon1.svg",
-			"type": "image/svg+xml",
-			"sizes": "192x192"
-		},
-		{
-			"src": "icons/icon2.svg",
-			"type": "image/svg+xml",
-			"sizes": "512x512"
-		}
-	],
-	"start_url": "./index.html",
-	"background_color": "#ffffff",
-	"theme_color": "#007bff",
-	"display": "standalone",
-	"orientation": "portrait"
+  "short_name": "CameraGPSApp",
+  "name": "PWA Camera & Geofence Application",
+  "icons": [
+    {
+      "src": "icons/icon1.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon2.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "display": "standalone",
+  "orientation": "portrait"
 }
