@@ -73,25 +73,36 @@ function stopCamera() {
 
 // อ่าน QR Code จากวิดีโอ โดยไม่ต้องส่งภาพไปยังเซิร์ฟเวอร์
 async function scanQRCode(video) {
-    if (!qrDetector || !videoStream) return;
+    if (!videoStream) return;
 
-    if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
-        try {
-            const codes = await qrDetector.detect(video);
-            if (codes.length > 0 && codes[0].rawValue) {
-                const value = codes[0].rawValue;
-                const preview = document.getElementById('photo-preview');
-                preview.innerHTML = `
-                    <h3 style="margin-top: 15px;">QR Code:</h3>
-                    <p style="word-break: break-all;">${escapeHtml(value)}</p>
-                `;
-            }
-        } catch (err) {
-            console.error('อ่าน QR Code ไม่สำเร็จ: ', err);
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+
+    if (video.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA) {
+        // ตั้งขนาด Canvas ให้ตรงกับวิดีโอ
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // วาดภาพจากกล้องลง Canvas เพื่อดึงพิกเซลข้อมูล
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+        // ใช้ jsQR สแกนหา QR Code จากข้อมูลภาพ
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+        });
+
+        if (code && code.data) {
+            const preview = document.getElementById('photo-preview');
+            preview.innerHTML = `
+                <h3 style="margin-top: 15px; color: green;">อ่าน QR Code สำเร็จ:</h3>
+                <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px;">${escapeHtml(code.data)}</p>
+            `;
         }
     }
 
-    if (videoStream) qrScanTimer = setTimeout(() => scanQRCode(video), 200);
+    // วนลูปสแกนเฟรมถัดไป
+    qrScanTimer = setTimeout(() => scanQRCode(video), 300);
 }
 
 function escapeHtml(value) {
