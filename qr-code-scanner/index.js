@@ -35,6 +35,14 @@ const QRScanner = (function() {
         onResult: function(callback) {
             init();
             core.setCallback(callback);
+        },
+
+        /**
+         * กำหนดการกระทำเมื่อ scanner พบข้อผิดพลาด
+         */
+        onError: function(callback) {
+            init();
+            core.setErrorCallback(callback);
         }
     };
 })();

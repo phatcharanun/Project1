@@ -23,21 +23,10 @@
     vertical-align: top;
     border-radius: 50%;
     background-color: #28a745;
+    color: #fff;
+    font-size: 2.25rem;
+    line-height: 60px;
     animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.checkmark-circle::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 15px;
-    height: 30px;
-    border: solid white;
-    border-width: 0 4px 4px 0;
-    transform: translate(-50%, -60%) rotate(45deg);
-    animation: checkIn 0.3s 0.3s ease-out forwards;
-    opacity: 0;
 }
 
 .qr-success-text {
@@ -45,6 +34,15 @@
     font-size: 1.2rem;
     font-weight: bold;
     color: #28a745;
+}
+
+.qr-data-label {
+    margin-top: 0.85rem;
+    font-weight: 600;
+}
+
+.qr-error-text {
+    color: #dc3545;
 }
 
 .qr-data-text {
@@ -63,11 +61,6 @@
 @keyframes scaleIn {
     0% { transform: scale(0); }
     100% { transform: scale(1); }
-}
-
-@keyframes checkIn {
-    0% { opacity: 0; transform: translate(-50%, -60%) rotate(45deg) scale(0); }
-    100% { opacity: 1; transform: translate(-50%, -60%) rotate(45deg) scale(1); }
 }
 
 @keyframes slideUp {

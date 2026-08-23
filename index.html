@@ -6,12 +6,13 @@
     <title>PWA Camera & Geofence App</title>
     
     <!-- เชื่อมต่อ Manifest สำหรับ PWA -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="icons/icon1.svg">
+    <link rel="manifest" href="pwa/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="pwa/icons/icon1.svg">
     <meta name="theme-color" content="#007bff">
     
     <!-- นำเข้าสไตล์ CSS -->
     <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="qr-code-scanner/scanner.css">
 </head>
 <body>
 
@@ -40,12 +41,12 @@
             </div>
 
              <!-- UI สำหรับแสดงผลการสแกน QR Code (ซ่อนอยู่จนกว่าจะสแกนเจอ) -->
-            <div id="qr-result-container">
-                <div class="checkmark-circle"></div>
+            <div id="qr-result-container" role="status" aria-live="polite">
+                <div class="checkmark-circle" aria-hidden="true">✓</div>
                 <div class="qr-success-text">สแกนสำเร็จ</div>
+                <div class="qr-data-label">ข้อมูลที่อ่านได้:</div>
                 <div id="qr-data-value" class="qr-data-text"></div>
             </div>
-<!-- UI สำหรับแสดงผลการสแกน QR Code (ซ่อนอยู่จนกว่าจะสแกนเจอ) -->
 
             <div id="photo-preview"></div>
         </section>
@@ -67,10 +68,12 @@
     </main>
 
     <!-- เรียกใช้งานสคริปต์ JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="qr-code-scanner/config.js"></script>
+    <script src="qr-code-scanner/scanner.js"></script>
+    <script src="qr-code-scanner/index.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/location.js"></script>
-    <!-- ไลบรารี jsQR สำหรับถอดรหัส QR (ผ่าน CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
 
     <!-- ลงทะเบียน Service Worker สำหรับ PWA -->

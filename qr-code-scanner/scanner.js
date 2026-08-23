@@ -8,11 +8,13 @@ class QRScannerCore {
         this.isScanning = false;
         this.scanInterval = null;
         this.onResultCallback = null;
+        this.onErrorCallback = null;
+        this.hasResult = false;
     }
 
     start(videoEl) {
         if (!videoEl) {
-            console.error("[QRScanner] Video element not found.");
+            this.reportError(QRConfig.messages.cameraUnavailable);
             return;
         }
         
@@ -21,12 +23,13 @@ class QRScannerCore {
 
         this.videoElement = videoEl;
         this.isScanning = true;
+        this.hasResult = false;
         this.hideResultUI();
 
         console.log("[QRScanner] Started scanning...");
         
         // รอให้ Video มีขนาดพร้อมก่อนเริ่มอ่าน
-        if (this.videoElement.readyState === this.videoElement.HAVE_ENOUGH_DATA) {
+        if (this.videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
             this.scanLoop();
         } else {
             this.videoElement.addEventListener('loadeddata', () => {
@@ -49,7 +52,7 @@ class QRScannerCore {
         if (!this.isScanning) return;
 
         // ตรวจสอบว่าวิดีโอถูกเล่นและมีขนาด
-        if (this.videoElement.readyState === this.videoElement.HAVE_ENOUGH_DATA) {
+        if (this.videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
             this.canvasElement.width = this.videoElement.videoWidth;
             this.canvasElement.height = this.videoElement.videoHeight;
             
@@ -57,13 +60,14 @@ class QRScannerCore {
             const imageData = this.canvasContext.getImageData(0, 0, this.canvasElement.width, this.canvasElement.height);
             
             // อ่าน QR Code ด้วย jsQR
-            if (typeof jsQR !== 'undefined') {
+            if (typeof jsQR === 'function') {
                 const code = jsQR(imageData.data, imageData.width, imageData.height, {
                     inversionAttempts: "dontInvert",
                 });
 
-                if (code) {
+                if (code?.data && !this.hasResult) {
                     console.log("[QRScanner] Found QR Code:", code.data);
+                    this.hasResult = true;
                     this.stop(); // หยุดสแกนทันทีที่เจอ
                     this.showResultUI(code.data);
                     
@@ -73,7 +77,8 @@ class QRScannerCore {
                     return; // ออกจาก loop
                 }
             } else {
-                console.warn("[QRScanner] jsQR library is not loaded.");
+                this.stop();
+                this.reportError(QRConfig.messages.libraryUnavailable);
             }
         }
 
@@ -89,10 +94,33 @@ class QRScannerCore {
         }
     }
 
+    setErrorCallback(callback) {
+        if (typeof callback === 'function') {
+            this.onErrorCallback = callback;
+        }
+    }
+
+    reportError(message) {
+        console.error('[QRScanner]', message);
+        const container = document.getElementById('qr-result-container');
+        const dataText = document.getElementById('qr-data-value');
+        const successText = container?.querySelector('.qr-success-text');
+        if (container && dataText && successText) {
+            successText.textContent = QRConfig.messages.error;
+            successText.classList.add('qr-error-text');
+            dataText.textContent = message;
+            container.style.display = 'flex';
+        }
+        if (this.onErrorCallback) this.onErrorCallback(message);
+    }
+
     showResultUI(data) {
         const container = document.getElementById('qr-result-container');
         const dataText = document.getElementById('qr-data-value');
         if (container && dataText) {
+            const successText = container.querySelector('.qr-success-text');
+            successText.textContent = QRConfig.messages.success;
+            successText.classList.remove('qr-error-text');
             dataText.innerText = data || QRConfig.messages.notFound;
             container.style.display = 'flex';
         }

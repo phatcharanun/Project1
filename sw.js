@@ -1,4 +1,4 @@
-const CACHE_NAME = 'camera-gps-app-v4';
+const CACHE_NAME = 'camera-gps-app-v5';
 
 const APP_SHELL = [
     './',
@@ -7,6 +7,10 @@ const APP_SHELL = [
     './CSS/style.css',
     './js/camera.js',
     './js/location.js',
+    './qr-code-scanner/config.js',
+    './qr-code-scanner/scanner.js',
+    './qr-code-scanner/index.js',
+    './qr-code-scanner/scanner.css',
     './pwa/icons/icon1.svg',
     './pwa/icons/icon2.svg'
 ];

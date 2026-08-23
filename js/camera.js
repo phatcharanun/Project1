@@ -7,6 +7,12 @@ async function startCamera() {
     const captureBtn = document.getElementById('btn-capture');
 
     try {
+        if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+            throw new Error('SECURE_CONTEXT_REQUIRED');
+        }
+
+        if (videoStream) return;
+
         // ขอเข้าถึงกล้องหลัง (environment)
         videoStream = await navigator.mediaDevices.getUserMedia({
             video: { 
@@ -26,22 +32,20 @@ async function startCamera() {
         startBtn.onclick = stopCamera;
         captureBtn.style.display = 'inline-block';
 
-        // [QRScanner Module] เริ่มต้นการสแกนเมื่อวิดีโอพร้อม
         if (typeof QRScanner !== 'undefined') {
-            QRScanner.start(video);
-            
-            // ตัวอย่างการรับผลลัพธ์จาก QR Scanner ส่งมาแสดงที่ console
             QRScanner.onResult((result) => {
                 console.log("แอพหลักได้รับข้อมูล QR Code:", result);
-                // ข้อมูลจะถูกแสดงที่ UI โดยโมดูลของ QRScanner อยู่แล้ว 
-                // แต่ถ้าต้องการนำค่าไปบันทึก หรือทำ Business Logic ต่อ ให้เขียนตรงนี้
             });
+            QRScanner.start(video);
         }
 
 
     } catch (err) {
         console.error("ไม่สามารถเข้าถึงกล้องได้: ", err);
-        alert("ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบการอนุญาตสิทธิ์ (Permission)");
+        const message = err.message === 'SECURE_CONTEXT_REQUIRED'
+            ? 'ต้องเปิดเว็บไซต์ผ่าน HTTPS หรือ localhost จึงจะใช้กล้องได้'
+            : 'ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบการอนุญาตสิทธิ์ (Permission)';
+        alert(message);
     }
 }
 

@@ -8,6 +8,9 @@ const QRConfig = {
     messages: {
         success: "สแกนสำเร็จ",
         notFound: "ไม่พบข้อมูล",
-        error: "เกิดข้อผิดพลาดในการอ่าน"
+        error: "เกิดข้อผิดพลาดในการอ่าน",
+        cameraUnavailable: "ไม่พบกล้องหรือกล้องยังไม่พร้อม",
+        permissionDenied: "ไม่ได้รับอนุญาตให้ใช้กล้อง",
+        libraryUnavailable: "ระบบอ่าน QR Code ยังไม่พร้อม"
     }
 };
