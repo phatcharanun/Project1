@@ -6,8 +6,8 @@
     <title>PWA Camera & Geofence App</title>
     
     <!-- เชื่อมต่อ Manifest สำหรับ PWA -->
-    <link rel="manifest" href="pwa/manifest.json">
-    <link rel="icon" type="image/svg+xml" href="pwa/icons/icon1.svg">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icons/icon1.svg">
     <meta name="theme-color" content="#007bff">
     
     <!-- นำเข้าสไตล์ CSS -->
@@ -38,6 +38,15 @@
                 <button id="btn-start-camera" onclick="startCamera()">เปิดกล้อง</button>
                 <button id="btn-capture" onclick="takeSnapshot()" style="display: none;">ถ่ายภาพ</button>
             </div>
+
+             <!-- UI สำหรับแสดงผลการสแกน QR Code (ซ่อนอยู่จนกว่าจะสแกนเจอ) -->
+            <div id="qr-result-container">
+                <div class="checkmark-circle"></div>
+                <div class="qr-success-text">สแกนสำเร็จ</div>
+                <div id="qr-data-value" class="qr-data-text"></div>
+            </div>
+<!-- UI สำหรับแสดงผลการสแกน QR Code (ซ่อนอยู่จนกว่าจะสแกนเจอ) -->
+
             <div id="photo-preview"></div>
         </section>
 
@@ -58,9 +67,21 @@
     </main>
 
     <!-- เรียกใช้งานสคริปต์ JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/location.js"></script>
-    <script src="pwa/pwa.js"></script>
+    <!-- ไลบรารี jsQR สำหรับถอดรหัส QR (ผ่าน CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+
+    <!-- ลงทะเบียน Service Worker สำหรับ PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker ลงทะเบียนสำเร็จ:', reg.scope))
+                    .catch(err => console.error('Service Worker ลงทะเบียนล้มเหลว:', err));
+            });
+        }
+    </script>
 </body>
 </html>

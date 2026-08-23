@@ -1,0 +1,76 @@
+/* scanner.css - UI และ Animation สำหรับ QR Scanner */
+
+#qr-result-container {
+    display: none; /* ซ่อนไว้ก่อนจนกว่าจะสแกนเจอ */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    animation: slideUp 0.3s ease-out;
+}
+
+/* อนิเมชันเครื่องหมายถูก (✓) */
+.checkmark-circle {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    border-radius: 50%;
+    background-color: #28a745;
+    animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.checkmark-circle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 15px;
+    height: 30px;
+    border: solid white;
+    border-width: 0 4px 4px 0;
+    transform: translate(-50%, -60%) rotate(45deg);
+    animation: checkIn 0.3s 0.3s ease-out forwards;
+    opacity: 0;
+}
+
+.qr-success-text {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.qr-data-text {
+    margin-top: 10px;
+    font-size: 1rem;
+    color: #333;
+    word-break: break-all;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+    border: 1px solid #ddd;
+}
+
+/* Animations */
+@keyframes scaleIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+@keyframes checkIn {
+    0% { opacity: 0; transform: translate(-50%, -60%) rotate(45deg) scale(0); }
+    100% { opacity: 1; transform: translate(-50%, -60%) rotate(45deg) scale(1); }
+}
+
+@keyframes slideUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
