@@ -10,6 +10,7 @@ class QRScannerCore {
         this.onResultCallback = null;
         this.onErrorCallback = null;
         this.hasResult = false;
+        this.hasOpenedUrl = false;
     }
 
     start(videoEl) {
@@ -24,6 +25,7 @@ class QRScannerCore {
         this.videoElement = videoEl;
         this.isScanning = true;
         this.hasResult = false;
+        this.hasOpenedUrl = false;
         this.hideResultUI();
 
         console.log("[QRScanner] Started scanning...");
@@ -117,13 +119,72 @@ class QRScannerCore {
     showResultUI(data) {
         const container = document.getElementById('qr-result-container');
         const dataText = document.getElementById('qr-data-value');
-        if (container && dataText) {
+        if (container && dataText && data) {
             const successText = container.querySelector('.qr-success-text');
+            const dataLabel = container.querySelector('.qr-data-label');
             successText.textContent = QRConfig.messages.success;
             successText.classList.remove('qr-error-text');
-            dataText.innerText = data || QRConfig.messages.notFound;
+            dataLabel.textContent = this.isUrl(data)
+                ? QRConfig.messages.urlDetected
+                : QRConfig.messages.dataLabel;
+            dataText.textContent = data;
+            dataText.classList.toggle('qr-url-text', this.isUrl(data));
+            this.removeActions(container);
             container.style.display = 'flex';
+
+            if (this.isUrl(data)) {
+                this.handleUrl(data, container);
+            } else {
+                this.addCopyAction(data, container);
+            }
         }
+    }
+
+    isUrl(data) {
+        try {
+            const url = new URL(data.trim());
+            return url.protocol === 'http:' || url.protocol === 'https:';
+        } catch (error) {
+            return false;
+        }
+    }
+
+    handleUrl(data, container) {
+        const url = new URL(data.trim()).href;
+        const openLink = document.createElement('a');
+        openLink.className = 'qr-open-link';
+        openLink.href = url;
+        openLink.target = '_blank';
+        openLink.rel = 'noopener noreferrer';
+        openLink.textContent = QRConfig.messages.openUrl;
+        container.appendChild(openLink);
+
+        if (this.hasOpenedUrl) return;
+        this.hasOpenedUrl = true;
+        window.setTimeout(() => {
+            const openedWindow = window.open(url, '_blank', 'noopener,noreferrer');
+            if (openedWindow) openedWindow.opener = null;
+        }, QRConfig.urlOpenDelayMs);
+    }
+
+    addCopyAction(data, container) {
+        const copyButton = document.createElement('button');
+        copyButton.type = 'button';
+        copyButton.className = 'qr-copy-button';
+        copyButton.textContent = QRConfig.messages.copy;
+        copyButton.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(data);
+                copyButton.textContent = QRConfig.messages.copied;
+            } catch (error) {
+                copyButton.textContent = QRConfig.messages.copyFailed;
+            }
+        });
+        container.appendChild(copyButton);
+    }
+
+    removeActions(container) {
+        container.querySelectorAll('.qr-copy-button, .qr-open-link').forEach(action => action.remove());
     }
 
     hideResultUI() {

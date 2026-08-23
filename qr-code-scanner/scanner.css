@@ -57,6 +57,43 @@
     border: 1px solid #ddd;
 }
 
+.qr-url-text {
+    overflow-wrap: anywhere;
+}
+
+.qr-copy-button,
+.qr-open-link {
+    align-self: stretch;
+    margin-top: 0.75rem;
+    padding: 0.7rem 1rem;
+    border: 0;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #fff;
+    font: inherit;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.qr-copy-button:hover,
+.qr-open-link:hover {
+    background: #1d4ed8;
+}
+
+@media (max-width: 640px) {
+    #qr-result-container {
+        padding: 1rem;
+    }
+
+    .qr-data-text {
+        max-height: 12rem;
+        overflow: auto;
+        text-align: left;
+        white-space: pre-wrap;
+    }
+}
+
 /* Animations */
 @keyframes scaleIn {
     0% { transform: scale(0); }

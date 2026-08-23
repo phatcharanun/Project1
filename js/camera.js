@@ -35,6 +35,7 @@ async function startCamera() {
         if (typeof QRScanner !== 'undefined') {
             QRScanner.onResult((result) => {
                 console.log("แอพหลักได้รับข้อมูล QR Code:", result);
+                stopCamera();
             });
             QRScanner.start(video);
         }
