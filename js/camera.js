@@ -1,4 +1,6 @@
 let videoStream = null;
+let qrScanTimer = null;
+let qrDetector = null;
 
 // ฟังก์ชันเปิดใช้งานกล้อง
 async function startCamera() {
@@ -20,6 +22,18 @@ async function startCamera() {
         // เล่นวิดีโอในแท็ก <video>
         video.srcObject = videoStream;
         video.style.display = 'block';
+
+        // เริ่มอ่านคิวอาร์โค้ดจากภาพวิดีโอแบบต่อเนื่อง
+        if ('BarcodeDetector' in window) {
+            try {
+                qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
+                scanQRCode(video);
+            } catch (err) {
+                console.error('ไม่สามารถเริ่มตัวอ่าน QR ได้: ', err);
+            }
+        } else {
+            console.warn('เบราว์เซอร์นี้ไม่รองรับการอ่าน QR Code');
+        }
         
         // สลับสถานะปุ่มกด
         startBtn.innerText = 'ปิดกล้อง';
@@ -44,11 +58,46 @@ function stopCamera() {
         videoStream = null;
     }
 
+    if (qrScanTimer) {
+        clearTimeout(qrScanTimer);
+        qrScanTimer = null;
+    }
+    qrDetector = null;
+
     video.style.display = 'none';
     captureBtn.style.display = 'none';
     
     startBtn.innerText = 'เปิดกล้อง';
     startBtn.onclick = startCamera;
+}
+
+// อ่าน QR Code จากวิดีโอ โดยไม่ต้องส่งภาพไปยังเซิร์ฟเวอร์
+async function scanQRCode(video) {
+    if (!qrDetector || !videoStream) return;
+
+    if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+        try {
+            const codes = await qrDetector.detect(video);
+            if (codes.length > 0 && codes[0].rawValue) {
+                const value = codes[0].rawValue;
+                const preview = document.getElementById('photo-preview');
+                preview.innerHTML = `
+                    <h3 style="margin-top: 15px;">QR Code:</h3>
+                    <p style="word-break: break-all;">${escapeHtml(value)}</p>
+                `;
+            }
+        } catch (err) {
+            console.error('อ่าน QR Code ไม่สำเร็จ: ', err);
+        }
+    }
+
+    if (videoStream) qrScanTimer = setTimeout(() => scanQRCode(video), 200);
+}
+
+function escapeHtml(value) {
+    return value.replace(/[&<>'"]/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[character]));
 }
 
 // ฟังก์ชันถ่ายภาพนิ่ง
