@@ -3,12 +3,12 @@ const CACHE_NAME = 'camera-gps-app-v4';
 const APP_SHELL = [
     './',
     './index.html',
-    './manifest.json',
+    './pwa/manifest.json',
     './CSS/style.css',
     './js/camera.js',
     './js/location.js',
-    './icons/icon1.svg',
-    './icons/icon2.svg'
+    './pwa/icons/icon1.svg',
+    './pwa/icons/icon2.svg'
 ];
 
 self.addEventListener('install', event => {
