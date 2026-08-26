@@ -158,13 +158,6 @@ class QRScannerCore {
         openLink.rel = 'noopener noreferrer';
         openLink.textContent = QRConfig.messages.openUrl;
         container.appendChild(openLink);
-
-        if (this.hasOpenedUrl) return;
-        this.hasOpenedUrl = true;
-        window.setTimeout(() => {
-            const openedWindow = window.open(url, '_blank', 'noopener,noreferrer');
-            if (openedWindow) openedWindow.opener = null;
-        }, QRConfig.urlOpenDelayMs);
     }
 
     addCopyAction(data, container) {
