@@ -39,11 +39,29 @@
 
 // let watchId = null;
 const GEOFENCE_TARGET = [
-    { lat: 13.767038, lng: 100.514539 },
-    { lat: 13.767106, lng: 100.514562 },
-    { lat: 13.767096, lng: 100.514537 },
-    { lat: 13.767090, lng: 100.514515 }
+    { lat: 13.767038, lng: 100.514539 }, // จุดมุมซ้ายล่าง
+    { lat: 13.767106, lng: 100.514539 }, // จุดมุมขวาล่าง
+    { lat: 13.767106, lng: 100.514562 }, // จุดมุมขวาบน
+    { lat: 13.767038, lng: 100.514562 }  // จุดมุมซ้ายบน
 ];
+
+function isPointInPolygon(point, polygon) {
+    let inside = false;
+
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].lng;
+        const yi = polygon[i].lat;
+        const xj = polygon[j].lng;
+        const yj = polygon[j].lat;
+
+        const intersect = ((yi > point.lat) !== (yj > point.lat)) &&
+            (point.lng < ((xj - xi) * (point.lat - yi)) / (yj - yi) + xi);
+
+        if (intersect) inside = !inside;
+    }
+
+    return inside;
+}
 // // กำหนดจุดศูนย์กลาง Geofence (ตัวอย่าง: เสาเสาชิงช้า กรุงเทพฯ)
 // const GEOFENCE_TARGET = {
 //     lat: 13.7516,
