@@ -1,42 +1,41 @@
 
-// ========== GEOFENCE CONFIG: Polygon Array ==========
-// เปลี่ยนจากวิธี circle radius เป็น polygon (สี่เหลี่ยม)
-let watchId = null;
+// // ========== GEOFENCE CONFIG: Polygon Array ==========
+// // เปลี่ยนจากวิธี circle radius เป็น polygon (สี่เหลี่ยม)
+// let watchId = null;
 
-const GEOFENCE_TARGET = [
-    { lat: 13.767038, lng: 100.514539 }, // จุดมุมซ้ายล่าง
-    { lat: 13.767106, lng: 100.514539 }, // จุดมุมขวาล่าง
-    { lat: 13.767106, lng: 100.514562 }, // จุดมุมขวาบน
-    { lat: 13.767038, lng: 100.514562 }  // จุดมุมซ้ายบน
-];
+// const GEOFENCE_TARGET = [
+//     { lat: 13.767038, lng: 100.514539 }, // จุดมุมซ้ายล่าง
+//     { lat: 13.767106, lng: 100.514539 }, // จุดมุมขวาล่าง
+//     { lat: 13.767106, lng: 100.514562 }, // จุดมุมขวาบน
+//     { lat: 13.767038, lng: 100.514562 }  // จุดมุมซ้ายบน
+// ];
 
-// ฟังก์ชันตรวจสอบว่าจุด (point) อยู่ในพื้นที่ polygon หรือไม่ (ray casting algorithm)
-function isPointInPolygon(point, polygon) {
-    let inside = false;
+// // ฟังก์ชันตรวจสอบว่าจุด (point) อยู่ในพื้นที่ polygon หรือไม่ (ray casting algorithm)
+// function isPointInPolygon(point, polygon) {
+//     let inside = false;
 
-    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        const xi = polygon[i].lng;
-        const yi = polygon[i].lat;
-        const xj = polygon[j].lng;
-        const yj = polygon[j].lat;
+//     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+//         const xi = polygon[i].lng;
+//         const yi = polygon[i].lat;
+//         const xj = polygon[j].lng;
+//         const yj = polygon[j].lat;
 
-        const intersect = ((yi > point.lat) !== (yj > point.lat)) &&
-            (point.lng < ((xj - xi) * (point.lat - yi)) / (yj - yi) + xi);
+//         const intersect = ((yi > point.lat) !== (yj > point.lat)) &&
+//             (point.lng < ((xj - xi) * (point.lat - yi)) / (yj - yi) + xi);
 
-        if (intersect) inside = !inside;
-    }
+//         if (intersect) inside = !inside;
+//     }
 
-    return inside;
-}
-
-/* ========== โค้ดเก่า (วิธี circle radius - ไม่ใช้แล้ว) ==========
-// กำหนดจุดศูนย์กลาง Geofence (ตัวอย่าง: เสาเสาชิงช้า กรุงเทพฯ)
-// const GEOFENCE_TARGET = {
-//     lat: 13.767125,
-//     lng: 100.514564,
-//     radiusMeters: 100 // รัศมีขอบเขต 100 เมตร
-// };
-========== END โค้ดเก่า ========== */
+//     return inside;
+// }
+// ========== โค้ดเก่า (วิธี circle radius - ไม่ใช้แล้ว) ==========
+//กำหนดจุดศูนย์กลาง Geofence (ตัวอย่าง: เสาเสาชิงช้า กรุงเทพฯ)
+const GEOFENCE_TARGET = {
+    lat: 13.811888,
+    lng: 100.533590,
+    radiusMeters: 100 // รัศมีขอบเขต 100 เมตร
+};
+//========== END โค้ดเก่า ========== 
 
 
 // ฟังก์ชันเปิด/ปิดการติดตาม GPS
