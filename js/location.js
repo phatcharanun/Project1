@@ -1,73 +1,10 @@
-// // 1. กำหนดพิกัดของกรอบพื้นที่ (ตัวอย่างพิกัดสี่เหลี่ยมรอบพื้นที่เป้าหมาย)
-// // *ต้องลากพิกัดจุดมุมเรียงต่อกันจนครบรอบ*
-// const registrationZone = [
-//     { lat: 13.767038, lng: 100.514539 },
-//     { lat: 13.767106, lng: 100.514562 },
-//     { lat: 13.767096, lng: 100.514537 },
-//     { lat: 13.767090, lng: 100.514515 }
-// ];
 
-// // 2. เมื่อกดปุ่มลงทะเบียนในหน้าเว็บ ให้ดึงพิกัด GPS มาตรวจสอบ
-// function handleRegistration() {
-//     navigator.geolocation.getCurrentPosition((position) => {
-//         const userLocation = {
-//             lat: position.coords.latitude,
-//             lng: position.coords.longitude
-//         };
-
-//         // เรียกใช้ฟังก์ชันตรวจสอบที่สร้างไว้ข้างต้น
-//         const canRegister = isPointInPolygon(userLocation, registrationZone);
-
-//         if (canRegister) {
-//             alert("คุณอยู่ในพื้นที่ที่กำหนด อนุญาตให้ลงทะเบียนได้!");
-//             // ทำกระบวนการลงทะเบียนหรือเปิดกล้องสแกน QR Code ต่อไป
-//         } else {
-//             alert("ปฏิเสธ: คุณอยู่นอกขอบเขตพื้นที่ลงทะเบียน");
-//         }
-//     }, (error) => {
-//         alert("ไม่สามารถดึงตำแหน่งพิกัดของคุณได้ กรุณาเปิด GPS");
-//     }, {
-//         enableHighAccuracy: true // บังคับใช้ความแม่นยำสูง
-//     });
-// }
-
-
-
-
-
-
-
-// let watchId = null;
-const GEOFENCE_TARGET = [
-    { lat: 13.767038, lng: 100.514539 }, // จุดมุมซ้ายล่าง
-    { lat: 13.767106, lng: 100.514539 }, // จุดมุมขวาล่าง
-    { lat: 13.767106, lng: 100.514562 }, // จุดมุมขวาบน
-    { lat: 13.767038, lng: 100.514562 }  // จุดมุมซ้ายบน
-];
-
-function isPointInPolygon(point, polygon) {
-    let inside = false;
-
-    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        const xi = polygon[i].lng;
-        const yi = polygon[i].lat;
-        const xj = polygon[j].lng;
-        const yj = polygon[j].lat;
-
-        const intersect = ((yi > point.lat) !== (yj > point.lat)) &&
-            (point.lng < ((xj - xi) * (point.lat - yi)) / (yj - yi) + xi);
-
-        if (intersect) inside = !inside;
-    }
-
-    return inside;
-}
-// // กำหนดจุดศูนย์กลาง Geofence (ตัวอย่าง: เสาเสาชิงช้า กรุงเทพฯ)
-// const GEOFENCE_TARGET = {
-//     lat: 13.7516,
-//     lng: 100.5014,
-//     radiusMeters: 100 // รัศมีขอบเขต 100 เมตร
-// };
+// กำหนดจุดศูนย์กลาง Geofence (ตัวอย่าง: เสาเสาชิงช้า กรุงเทพฯ)
+const GEOFENCE_TARGET = {
+    lat: 13.767125,
+    lng: 100.514564,
+    radiusMeters: 100 // รัศมีขอบเขต 100 เมตร
+};
 
 // ฟังก์ชันเปิด/ปิดการติดตาม GPS
 function toggleGPS() {
