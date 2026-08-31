@@ -147,21 +147,15 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 // ตรวจสอบว่าพิกัดปัจจุบันอยู่ในรัศมี Geofence หรือไม่
 function checkGeofence(userLat, userLng) {
-    const distance = calculateDistance(
-        userLat, 
-        userLng, 
-        GEOFENCE_TARGET.lat, 
-        GEOFENCE_TARGET.lng
-    );
-
+    const userPoint = { lat: userLat, lng: userLng };
     const statusElem = document.getElementById('geofence-status');
 
-    if (distance <= GEOFENCE_TARGET.radiusMeters) {
-        statusElem.innerText = `อยู่ในเขตพื้นที่! (ห่างจุดเป้าหมาย ${distance.toFixed(1)} เมตร)`;
+    if (isPointInPolygon(userPoint, GEOFENCE_TARGET)) {
+        statusElem.innerText = `อยู่ในเขตพื้นที่!`;
         statusElem.style.color = 'green';
         statusElem.style.fontWeight = 'bold';
     } else {
-        statusElem.innerText = `อยู่นอกเขตพื้นที่ (ห่างจุดเป้าหมาย ${distance.toFixed(1)} เมตร)`;
+        statusElem.innerText = `อยู่นอกเขตพื้นที่`;
         statusElem.style.color = 'red';
         statusElem.style.fontWeight = 'normal';
     }
