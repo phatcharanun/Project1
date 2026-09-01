@@ -74,7 +74,7 @@
                 <input type="text" id="student-id-input" placeholder="กรอกรหัสนักศึกษา" style="padding: 8px; width: 80%; max-width: 300px; margin-bottom: 10px;">
             </div>
 
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
                 <button id="btn-register-bio" type="button" onclick="handleBiometricRegister()" style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
                     ลงทะเบียน Fingerprint/FaceID
                 </button>
@@ -82,6 +82,23 @@
                 <button id="btn-verify-bio" type="button" onclick="handleBiometricVerify()" style="background-color: #0d6efd; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
                     สแกนเพื่อยืนยันตัวตน
                 </button>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <video id="face-video" autoplay playsinline muted style="display:none; width:100%; max-width:320px; border-radius:12px; background:#000;"></video>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                <button id="btn-open-face-camera" type="button" onclick="startFaceCamera()" style="background-color:#6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                    เปิดกล้องหน้า
+                </button>
+                <button id="btn-scan-face" type="button" onclick="handleFaceScan()" style="background-color:#fd7e14; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                    สแกนหน้า
+                </button>
+            </div>
+
+            <div id="face-result" class="info-box" style="margin-top: 10px; min-height: 62px;">
+                สถานะ: รอการสแกนหน้า
             </div>
 
             <p style="margin-top: 10px;">สถานะ: <strong id="biometric-status">พร้อมใช้งาน</strong></p>
