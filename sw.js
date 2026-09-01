@@ -12,7 +12,8 @@ const APP_SHELL = [
     './qr-code-scanner/index.js',
     './qr-code-scanner/scanner.css',
     './pwa/icons/icon1.svg',
-    './pwa/icons/icon2.svg'
+    './pwa/icons/icon2.svg',
+    './js/webauthn.js'
 ];
 
 self.addEventListener('install', event => {

@@ -65,6 +65,28 @@
             </div>
         </section>
 
+        <!-- ส่วนที่ 3: ระบบยืนยันตัวตนด้วย Biometrics (W3C WebAuthn) -->
+        <section class="card">
+            <h2>3. ระบบยืนยันตัวตนด้วย Biometrics (W3C WebAuthn)</h2>
+            <p>ใช้ Touch ID / Face ID / Fingerprint ของมือถือยืนยันตัวตนโดยไม่ต้องใช้แอป</p>
+            
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="student-id-input" placeholder="กรอกรหัสนักศึกษา" style="padding: 8px; width: 80%; max-width: 300px; margin-bottom: 10px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button id="btn-register-bio" type="button" onclick="handleBiometricRegister()" style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                    ลงทะเบียน Fingerprint/FaceID
+                </button>
+                
+                <button id="btn-verify-bio" type="button" onclick="handleBiometricVerify()" style="background-color: #0d6efd; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                    สแกนเพื่อยืนยันตัวตน
+                </button>
+            </div>
+
+            <p style="margin-top: 10px;">สถานะ: <strong id="biometric-status">พร้อมใช้งาน</strong></p>
+        </section>
+
     </main>
 
     <!-- เรียกใช้งานสคริปต์ JavaScript -->
@@ -74,7 +96,7 @@
     <script src="qr-code-scanner/index.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/Geofence.js"></script>
-
+    <script src="js/webauthn.js"></script>
 
     <!-- ลงทะเบียน Service Worker สำหรับ PWA -->
     <script>
