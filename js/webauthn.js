@@ -15,6 +15,15 @@ class BiometricAuth {
         }
     }
 
+    // ฟังก์ชันเฉพาะสำหรับ Face ID / Face Unlock ของระบบปฏิบัติการมือถือ
+    async registerFaceBiometrics(studentId) {
+        return this.registerBiometrics(studentId);
+    }
+
+    async verifyFaceBiometrics(studentId) {
+        return this.verifyBiometrics(studentId);
+    }
+
     // ลงทะเบียน Biometrics (Register)
     async registerBiometrics(studentId) {
         if (!await this.checkSupport()) {
@@ -196,16 +205,24 @@ const biometricAuth = new BiometricAuth();
 const faceScanner = new FaceScanner();
 
 async function startFaceCamera() {
+    const studentIdInput = document.getElementById('student-id-input')?.value;
     const statusText = document.getElementById('biometric-status');
     const resultBox = document.getElementById('face-result');
 
+    if (!studentIdInput) {
+        alert('กรุณากรอกรหัสนักศึกษาเพื่อเรียกใช้ Face ID / Face Unlock');
+        return;
+    }
+
     try {
-        if (statusText) statusText.textContent = 'กำลังเปิดกล้องหน้าของโทรศัพท์...';
-        await faceScanner.openCamera();
-        if (resultBox) resultBox.innerHTML = 'กล้องหน้าเปิดแล้ว พร้อมสำหรับสแกนใบหน้า';
-        if (statusText) statusText.textContent = 'กล้องหน้าใช้งานได้';
+        if (statusText) statusText.textContent = 'กำลังเรียกใช้ Face ID / Face Unlock ของระบบปฏิบัติการ...';
+        const result = await biometricAuth.verifyFaceBiometrics(studentIdInput);
+        if (resultBox) {
+            resultBox.innerHTML = '<strong>ยืนยันใบหน้าโดยระบบปฏิบัติการมือถือตรงตาม Face ID / Face Unlock แล้ว</strong><br>ใช้สิทธิ์สแกนใบหน้าจาก OS ของอุปกรณ์';
+        }
+        if (statusText) statusText.textContent = 'ยืนยันใบหน้าโดยระบบปฏิบัติการสำเร็จ';
     } catch (err) {
-        if (statusText) statusText.textContent = 'ไม่สามารถเปิดกล้องหน้าได้';
+        if (statusText) statusText.textContent = 'ไม่สามารถเรียกใช้ Face ID / Face Unlock ได้';
         if (resultBox) resultBox.innerHTML = `ข้อผิดพลาด: ${err.message}`;
         alert(err.message);
     }
@@ -214,6 +231,7 @@ async function startFaceCamera() {
 async function handleFaceScan() {
     const studentIdInput = document.getElementById('student-id-input')?.value;
     const statusText = document.getElementById('biometric-status');
+    const resultBox = document.getElementById('face-result');
 
     if (!studentIdInput) {
         alert('กรุณากรอกรหัสนักศึกษาเพื่อสแกนใบหน้า');
@@ -221,14 +239,16 @@ async function handleFaceScan() {
     }
 
     try {
-        if (statusText) statusText.textContent = 'กำลังสแกนใบหน้า...';
-        const result = await faceScanner.scanFace(studentIdInput);
+        if (statusText) statusText.textContent = 'กำลังเรียกใช้ Face ID / Face Unlock...';
+        await biometricAuth.verifyFaceBiometrics(studentIdInput);
+        if (resultBox) {
+            resultBox.innerHTML = '<strong>สแกนใบหน้าเรียบร้อยแล้ว</strong><br>ใช้งาน Face ID / Face Unlock จากระบบปฏิบัติการมือถือ';
+        }
         if (statusText) {
-            statusText.textContent = result.success ? 'สแกนใบหน้าเรียบร้อยแล้ว' : 'สแกนหน้าไม่สำเร็จ';
+            statusText.textContent = 'สแกนใบหน้าโดยระบบปฏิบัติการสำเร็จ';
         }
     } catch (err) {
         if (statusText) statusText.textContent = 'ไม่สามารถสแกนใบหน้าได้';
-        const resultBox = document.getElementById('face-result');
         if (resultBox) resultBox.innerHTML = `ข้อผิดพลาด: ${err.message}`;
         alert(err.message);
     }
