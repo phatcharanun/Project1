@@ -32,8 +32,9 @@ function toggleGPS() {
                     maximumAge: 0
                 }
             );
-            btn.innerText = 'ปิดการติดตาม GPS';
-            btn.style.backgroundColor = '#dc3545';
+            btn.setAttribute('aria-label', 'ปิดการติดตาม GPS');
+            btn.title = 'ปิดการติดตาม GPS';
+            btn.classList.add('is-active');
         } else {
             alert('อุปกรณ์ของคุณไม่รองรับ Geolocation API');
         }
@@ -47,8 +48,9 @@ function toggleGPS() {
         document.getElementById('geofence-status').innerText = 'ปิดใช้งาน';
         document.getElementById('geofence-status').style.color = '#000';
 
-        btn.innerText = 'เปิดใช้งาน GPS ติดตามตำแหน่ง';
-        btn.style.backgroundColor = '#007bff';
+        btn.setAttribute('aria-label', 'เปิดใช้งาน GPS ติดตามตำแหน่ง');
+        btn.title = 'เปิดใช้งาน GPS ติดตามตำแหน่ง';
+        btn.classList.remove('is-active');
     }
 }
 
@@ -60,6 +62,17 @@ function handleSuccess(position) {
     // อัปเดต UI พิกัด
     document.getElementById('lat-val').innerText = currentLat.toFixed(6);
     document.getElementById('lng-val').innerText = currentLng.toFixed(6);
+
+    const map = document.getElementById('location-map');
+    const mapCell = `${currentLat.toFixed(4)},${currentLng.toFixed(4)}`;
+    if (map && map.dataset.mapCell !== mapCell) {
+        const west = (currentLng - 0.0004).toFixed(6);
+        const south = (currentLat - 0.00025).toFixed(6);
+        const east = (currentLng + 0.0004).toFixed(6);
+        const north = (currentLat + 0.00025).toFixed(6);
+        map.src = `https://www.openstreetmap.org/export/embed.html?bbox=${west}%2C${south}%2C${east}%2C${north}&layer=mapnik&marker=${currentLat}%2C${currentLng}`;
+        map.dataset.mapCell = mapCell;
+    }
 
     // ตรวจสอบสถานะ Geofence
     checkGeofence(currentLat, currentLng);

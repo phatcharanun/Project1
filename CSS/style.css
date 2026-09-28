@@ -152,3 +152,446 @@ select:focus {
 		padding: 1rem;
 	}
 }
+
+/* Student mobile dashboard */
+:root {
+	color-scheme: light;
+	--ink: #202522;
+	--muted: #77817c;
+	--mint: #83d5cc;
+	--mint-deep: #238f85;
+	--panel: #dedfdd;
+}
+
+body {
+	min-height: 100vh;
+	background: #f0f2f1;
+	color: var(--ink);
+	font-family: "Noto Sans Thai", "Leelawadee UI", Tahoma, sans-serif;
+}
+
+.app-shell {
+	position: relative;
+	width: min(100%, 430px);
+	min-height: 100vh;
+	margin-inline: auto;
+	background: #fff;
+	box-shadow: 0 0 40px rgb(28 39 34 / 8%);
+	padding-bottom: calc(74px + env(safe-area-inset-bottom));
+}
+
+.app-header {
+	display: grid;
+	height: 64px;
+	place-items: center;
+	margin: 0;
+	background: #fff;
+	color: var(--ink);
+}
+
+.app-header h1 {
+	font-size: 1.15rem;
+	font-weight: 650;
+}
+
+main.container {
+	display: block;
+	width: 100%;
+	margin-inline: auto;
+	padding-bottom: 0;
+}
+
+.map-section {
+	padding: 0 12px;
+}
+
+.map-frame {
+	position: relative;
+	height: 110px;
+	overflow: hidden;
+	border-radius: 11px;
+	background: #e5ece8;
+}
+
+.map-frame iframe {
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+.map-status {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	max-width: calc(100% - 56px);
+	border-radius: 5px;
+	background: rgb(255 255 255 / 92%);
+	padding: 3px 7px;
+	font-size: 0.67rem;
+	font-weight: 650;
+}
+
+.gps-dot {
+	display: inline-block;
+	width: 7px;
+	height: 7px;
+	margin-right: 3px;
+	border-radius: 50%;
+	background: #72c5a2;
+	vertical-align: 1px;
+}
+
+.map-location-button {
+	position: absolute;
+	right: 8px;
+	bottom: 8px;
+	display: grid;
+	width: 34px;
+	height: 34px;
+	place-items: center;
+	border: 0;
+	border-radius: 50%;
+	background: #fff;
+	color: var(--mint-deep);
+	box-shadow: 0 2px 8px rgb(0 0 0 / 14%);
+	cursor: pointer;
+}
+
+.map-location-button svg {
+	width: 20px;
+	fill: none;
+	stroke: currentColor;
+	stroke-linecap: round;
+	stroke-width: 1.8;
+}
+
+.map-location-button.is-active {
+	background: var(--mint);
+	color: #123b37;
+}
+
+.coordinates {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 6px 3px 0;
+	color: var(--muted);
+	font-size: 0.65rem;
+}
+
+.coordinates span:last-child {
+	font-variant-numeric: tabular-nums;
+}
+
+.scan-section {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 12px 18px 0;
+}
+
+.scan-mark {
+	display: grid;
+	width: 82px;
+	height: 82px;
+	place-items: center;
+	border-radius: 16px;
+	background: #e6e7e5;
+	color: #080a09;
+}
+
+.scan-mark svg {
+	width: 62px;
+	fill: none;
+	stroke: currentColor;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-width: 5;
+}
+
+.scan-section h2 {
+	margin-top: 2px;
+	font-size: 0.82rem;
+	font-weight: 650;
+}
+
+.video-container {
+	width: 100%;
+	margin-top: 9px;
+	margin-bottom: 0;
+	text-align: center;
+}
+
+.video-container video {
+	width: 100%;
+	max-height: 320px;
+	margin-inline: auto;
+	border-radius: 10px;
+	background: #111;
+}
+
+.scan-actions {
+	width: min(100%, 300px);
+	margin-top: 12px;
+	border-radius: 18px;
+	background: var(--panel);
+	padding: 12px 18px;
+}
+
+button,
+input {
+	font: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+.scan-button,
+.biometric-button {
+	display: flex;
+	width: 100%;
+	min-height: 42px;
+	align-items: center;
+	justify-content: center;
+	gap: 9px;
+	border: 0;
+	border-radius: 999px;
+	background: #fff;
+	color: #262a28;
+	font-size: 0.82rem;
+	font-weight: 650;
+	transition: filter 160ms ease, transform 160ms ease;
+}
+
+.scan-button:hover,
+.biometric-button:hover {
+	filter: brightness(0.97);
+	transform: translateY(-1px);
+}
+
+.scan-button svg,
+.biometric-button svg {
+	width: 22px;
+	height: 22px;
+	fill: none;
+	stroke: currentColor;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-width: 1.8;
+}
+
+.capture-button {
+	width: 100%;
+	margin-top: 8px;
+	border: 0;
+	border-radius: 999px;
+	background: #404946;
+	color: #fff;
+	padding: 9px;
+}
+
+.biometrics-section {
+	width: min(calc(100% - 72px), 300px);
+	margin: 8px auto 0;
+	border-radius: 17px;
+	background: var(--panel);
+	padding: 11px 19px 10px;
+}
+
+.biometrics-section h2 {
+	margin-bottom: 6px;
+	text-align: center;
+	font-size: 0.78rem;
+	font-style: italic;
+	font-weight: 700;
+}
+
+.student-id-label {
+	display: block;
+	margin-bottom: 3px;
+	color: #5f6662;
+	font-size: 0.66rem;
+}
+
+.biometrics-section input {
+	width: 100%;
+	min-height: 32px;
+	border: 1px solid #c9cfcc;
+	border-radius: 8px;
+	background: #fff;
+	padding: 5px 9px;
+	font-size: 0.78rem;
+}
+
+.biometric-actions {
+	display: grid;
+	gap: 7px;
+	margin-top: 7px;
+}
+
+.biometric-button {
+	min-height: 38px;
+	justify-content: space-between;
+	padding: 0 13px;
+	background: #fff;
+	font-size: 0.74rem;
+}
+
+.biometric-button-secondary {
+	background: var(--mint);
+	color: #123b37;
+}
+
+.biometric-status {
+	margin-top: 6px;
+	font-size: 0.62rem;
+}
+
+.biometric-status strong {
+	font-weight: 550;
+}
+
+.risk-score {
+	margin: 16px 12px 12px;
+	font-size: 0.69rem;
+}
+
+.risk-score span {
+	color: var(--muted);
+}
+
+.bottom-nav {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: flex;
+	height: calc(58px + env(safe-area-inset-bottom));
+	align-items: flex-start;
+	justify-content: space-around;
+	border-top: 1px solid #f0f1f0;
+	background: rgb(255 255 255 / 97%);
+	padding: 9px 24px env(safe-area-inset-bottom);
+}
+
+.nav-item {
+	display: grid;
+	width: 42px;
+	height: 36px;
+	place-items: center;
+	color: #333a36;
+}
+
+.nav-item svg {
+	width: 21px;
+	height: 21px;
+	fill: none;
+	stroke: currentColor;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-width: 1.8;
+}
+
+.nav-active svg {
+	fill: currentColor;
+	stroke-width: 1.3;
+}
+
+.home-anchor {
+	position: absolute;
+	top: 0;
+}
+
+.advanced-biometric {
+	margin-top: 8px;
+	font-size: 0.7rem;
+}
+
+.advanced-biometric summary {
+	cursor: pointer;
+}
+
+.advanced-biometric .student-id-label {
+	margin-top: 8px;
+}
+
+.advanced-biometric input {
+	width: 100%;
+	border: 1px solid #c9cfcc;
+	border-radius: 6px;
+	background: #fff;
+	padding: 6px 8px;
+	font-size: 0.72rem;
+}
+
+.advanced-biometric button {
+	margin: 7px 5px 0 0;
+	border: 0;
+	border-radius: 6px;
+	background: #fff;
+	padding: 6px 8px;
+	font-size: 0.68rem;
+}
+
+.advanced-biometric video {
+	display: none;
+	width: 100%;
+	margin-top: 8px;
+	border-radius: 8px;
+	background: #111;
+}
+
+.info-box {
+	margin: 8px 0;
+	border-radius: 8px;
+	background: #fff;
+	padding: 8px;
+	font-size: 0.72rem;
+}
+
+img {
+	display: block;
+	max-width: 100%;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+	outline: 3px solid rgb(35 143 133 / 35%);
+	outline-offset: 2px;
+}
+
+@media (min-width: 600px) {
+	.app-shell {
+		margin-block: 24px;
+		min-height: min(900px, calc(100vh - 48px));
+		border-radius: 18px;
+		overflow: hidden;
+	}
+}
+
+@media (max-width: 599px) {
+	.bottom-nav {
+		position: fixed;
+		right: auto;
+		left: 50%;
+		width: min(100%, 430px);
+		transform: translateX(-50%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
+}
