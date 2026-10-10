@@ -1,10 +1,46 @@
 let videoStream = null;
 
+async function openQRScannerPage() {
+    document.body.classList.remove('notifications-page');
+    document.body.classList.add('qr-scanner-page');
+    document.querySelector('.app-header h1').textContent = 'สแกนคิวอาร์โค้ด';
+    document.getElementById('btn-start-camera').onclick = startCamera;
+    await startCamera();
+}
+
+function openNotificationsPage() {
+    if (document.body.classList.contains('qr-scanner-page')) {
+        closeQRScannerPage();
+    }
+    document.body.classList.add('notifications-page');
+    document.querySelector('.app-header h1').textContent = 'การแจ้งเตือน';
+}
+
+function closeNotificationsPage() {
+    document.body.classList.remove('notifications-page');
+    document.querySelector('.app-header h1').textContent = 'For Students';
+}
+
+function closeAppPage() {
+    closeQRScannerPage();
+    closeNotificationsPage();
+}
+
+function closeQRScannerPage() {
+    stopCamera();
+    document.body.classList.remove('qr-scanner-page');
+    document.querySelector('.app-header h1').textContent = 'For Students';
+    const startBtn = document.getElementById('btn-start-camera');
+    document.getElementById('qr-camera-button-label').textContent = 'สแกนคิวอาร์โค้ด';
+    startBtn.onclick = openQRScannerPage;
+    document.getElementById('qr-result-container').style.display = 'none';
+}
+
 // ฟังก์ชันเปิดใช้งานกล้อง
 async function startCamera() {
     const video = document.getElementById('webcam');
     const startBtn = document.getElementById('btn-start-camera');
-    const captureBtn = document.getElementById('btn-capture');
+    const buttonLabel = document.getElementById('qr-camera-button-label');
 
     try {
         if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
@@ -25,12 +61,10 @@ async function startCamera() {
 
         // เล่นวิดีโอในแท็ก <video>
         video.srcObject = videoStream;
-        video.style.display = 'block';
         
         // สลับสถานะปุ่มกด
-        startBtn.innerText = 'ปิดกล้อง';
+        buttonLabel.textContent = 'ปิดกล้อง';
         startBtn.onclick = stopCamera;
-        captureBtn.style.display = 'inline-block';
 
         if (typeof QRScanner !== 'undefined') {
             QRScanner.onResult((result) => {
@@ -54,7 +88,7 @@ async function startCamera() {
 function stopCamera() {
     const video = document.getElementById('webcam');
     const startBtn = document.getElementById('btn-start-camera');
-    const captureBtn = document.getElementById('btn-capture');
+    const buttonLabel = document.getElementById('qr-camera-button-label');
 
     if (videoStream) {
         // ปิด Track วิดีโอทั้งหมด
@@ -62,38 +96,13 @@ function stopCamera() {
         videoStream = null;
     }
 
-    video.style.display = 'none';
-    captureBtn.style.display = 'none';
+    video.srcObject = null;
     
     // [QRScanner Module] หยุดการสแกน
     if (typeof QRScanner !== 'undefined') {
         QRScanner.stop();
     }
     
-    startBtn.innerText = 'เปิดกล้อง';
+    buttonLabel.textContent = 'เปิดกล้อง';
     startBtn.onclick = startCamera;
-}
-
-// ฟังก์ชันถ่ายภาพนิ่ง
-function takeSnapshot() {
-    const video = document.getElementById('webcam');
-    const canvas = document.getElementById('canvas');
-    const preview = document.getElementById('photo-preview');
-
-    if (!videoStream) return;
-
-    // ตั้งขนาด Canvas เท่ากับวิดีโอจริง
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // วาดภาพจาก Video ลงบน Canvas
-    const context = canvas.getContext('2d');
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // แปลงภาพเป็น Data URL และนำไปแสดงในแท็ก <img>
-    const imageDataUrl = canvas.toDataURL('image/png');
-    preview.innerHTML = `
-        <h3 style="margin-top: 15px;">รูปที่ถ่าย:</h3>
-        <img src="${imageDataUrl}" alt="Captured Photo" style="width: 100%; max-width: 400px; border-radius: 8px; border: 2px solid #ccc;" />
-    `;
 }

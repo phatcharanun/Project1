@@ -181,6 +181,7 @@ body {
 }
 
 .app-header {
+	position: relative;
 	display: grid;
 	height: 64px;
 	place-items: center;
@@ -300,6 +301,109 @@ main.container {
 	flex-direction: column;
 	align-items: center;
 	padding: 12px 18px 0;
+}
+
+.video-container {
+	display: none;
+}
+
+.scanner-back-button {
+	position: absolute;
+	left: 12px;
+	display: none;
+	width: 36px;
+	height: 36px;
+	place-items: center;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--ink);
+	padding: 0;
+}
+
+.scanner-back-button:hover {
+	background: #f0f2f1;
+	transform: none;
+}
+
+.scanner-back-button svg {
+	width: 22px;
+	fill: none;
+	stroke: currentColor;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-width: 1.8;
+}
+
+body.qr-scanner-page .scanner-back-button {
+	display: grid;
+}
+
+.notification-section {
+	display: none;
+	width: calc(100% - 24px);
+	min-height: calc(100vh - 142px);
+	min-height: calc(100dvh - 142px);
+	margin: 12px auto;
+	border-radius: 17px;
+	background: var(--panel);
+	padding: 18px;
+}
+
+.notification-section h2 {
+	font-size: 1rem;
+}
+
+.notification-section p {
+	margin-top: 20px;
+	color: var(--muted);
+	text-align: center;
+}
+
+body.notifications-page .map-section,
+body.notifications-page #scan,
+body.notifications-page #biometrics,
+body.notifications-page .risk-score {
+	display: none;
+}
+
+body.notifications-page .notification-section,
+body.notifications-page .scanner-back-button {
+	display: block;
+}
+
+body.notifications-page .scanner-back-button {
+	display: grid;
+}
+
+body.qr-scanner-page .map-section,
+body.qr-scanner-page #biometrics,
+body.qr-scanner-page .risk-score {
+	display: none;
+}
+
+body.qr-scanner-page .scan-section {
+	width: calc(100% - 24px);
+	min-height: calc(100vh - 142px);
+	min-height: calc(100dvh - 142px);
+	margin: 12px auto;
+	border-radius: 17px;
+	background: var(--panel);
+	padding: 18px;
+}
+
+body.qr-scanner-page .video-container {
+	display: block;
+	margin-top: 16px;
+}
+
+body.qr-scanner-page .video-container video {
+	aspect-ratio: 4 / 3;
+	max-height: min(56vh, 460px);
+	object-fit: cover;
+}
+
+body.qr-scanner-page .scan-actions {
+	margin-top: 14px;
 }
 
 .scan-mark {
@@ -542,6 +646,7 @@ button {
 	border: 0;
 	border-radius: 6px;
 	background: #fff;
+	color: var(--ink);
 	padding: 6px 8px;
 	font-size: 0.68rem;
 }

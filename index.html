@@ -17,7 +17,12 @@
 <body>
 
     <div class="app-shell">
-        <header class="app-header"><h1>For Students</h1></header>
+        <header class="app-header">
+            <button id="btn-back-from-scanner" class="scanner-back-button" type="button" onclick="closeAppPage()" aria-label="กลับหน้าหลัก">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6M9 12h12"/></svg>
+            </button>
+            <h1>For Students</h1>
+        </header>
 
         <main class="container">
             <div id="secure-context-warning" class="info-box" style="display: none;">
@@ -47,14 +52,12 @@
                 <h2 id="scan-title">สแกนคิวอาร์โค้ด</h2>
                 <div class="video-container">
                     <video id="webcam" autoplay playsinline></video>
-                    <canvas id="canvas" hidden></canvas>
                 </div>
                 <div class="scan-actions">
-                    <button id="btn-start-camera" class="scan-button" onclick="startCamera()">
-                        <span>สแกนคิวอาร์โค้ด</span>
+                    <button id="btn-start-camera" class="scan-button" onclick="openQRScannerPage()">
+                        <span id="qr-camera-button-label">สแกนคิวอาร์โค้ด</span>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3m8 0h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M9 10h6v4H9z"/></svg>
                     </button>
-                    <button id="btn-capture" class="capture-button" onclick="takeSnapshot()" style="display: none;">ถ่ายภาพ</button>
                 </div>
                 <div id="qr-result-container" role="status" aria-live="polite">
                     <div class="checkmark-circle" aria-hidden="true">✓</div>
@@ -62,11 +65,17 @@
                     <div class="qr-data-label">ข้อมูลที่อ่านได้:</div>
                     <div id="qr-data-value" class="qr-data-text"></div>
                 </div>
-                <div id="photo-preview"></div>
+            </section>
+
+            <section id="notifications" class="notification-section" aria-labelledby="notifications-title">
+                <h2 id="notifications-title">การแจ้งเตือน</h2>
+                <p>ยังไม่มีการแจ้งเตือน</p>
             </section>
 
             <section id="biometrics" class="biometrics-section" aria-labelledby="biometrics-title">
                 <h2 id="biometrics-title">Biometrics</h2>
+                <label class="student-id-label" for="student-id-input">รหัสนักศึกษา</label>
+                <input type="text" id="student-id-input" placeholder="กรอกรหัสนักศึกษา" autocomplete="username">
                 <div class="biometric-actions">
                     <button id="btn-verify-bio" class="biometric-button" type="button" onclick="handleBiometricVerify()">
                         <span>สแกนลายนิ้วมือ</span>
@@ -80,8 +89,6 @@
                 <p class="biometric-status">สถานะ: <strong id="biometric-status">พร้อมใช้งาน</strong></p>
                 <details class="advanced-biometric">
                     <summary>ตัวเลือกเพิ่มเติม</summary>
-                    <label class="student-id-label" for="student-id-input">รหัสนักศึกษา</label>
-                    <input type="text" id="student-id-input" placeholder="กรอกรหัสนักศึกษา" autocomplete="username">
                     <button id="btn-register-bio" type="button" onclick="handleBiometricRegister()">ลงทะเบียน Biometrics</button>
                     <button id="btn-open-face-camera" type="button" onclick="startFaceCamera()">เรียกใช้ Face ID / Face Unlock</button>
                     <video id="face-video" autoplay playsinline muted></video>
@@ -93,10 +100,10 @@
         </main>
 
         <nav class="bottom-nav" aria-label="เมนูหลัก">
-            <a href="#home" aria-label="หน้าหลัก" class="nav-item nav-active">
+            <a href="#home" aria-label="หน้าหลัก" class="nav-item nav-active" onclick="closeAppPage(); return false;">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
             </a>
-            <a href="#scan" aria-label="สแกน" class="nav-item">
+            <a href="#notifications" aria-label="การแจ้งเตือน" class="nav-item" onclick="openNotificationsPage(); return false;">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12a2 2 0 0 0 4 0"/></svg>
             </a>
             <a href="#biometrics" aria-label="บัญชี" class="nav-item">

@@ -203,9 +203,22 @@ class FaceScanner {
 
 const biometricAuth = new BiometricAuth();
 const faceScanner = new FaceScanner();
+const BIOMETRIC_STUDENT_ID_KEY = 'biometric_student_id';
+
+function getBiometricStudentId() {
+    const input = document.getElementById('student-id-input');
+    const enteredId = input?.value.trim();
+    const studentId = enteredId || localStorage.getItem(BIOMETRIC_STUDENT_ID_KEY) || '';
+
+    if (input && !enteredId && studentId) {
+        input.value = studentId;
+    }
+
+    return studentId;
+}
 
 async function startFaceCamera() {
-    const studentIdInput = document.getElementById('student-id-input')?.value;
+    const studentIdInput = getBiometricStudentId();
     const statusText = document.getElementById('biometric-status');
     const resultBox = document.getElementById('face-result');
 
@@ -229,7 +242,7 @@ async function startFaceCamera() {
 }
 
 async function handleFaceScan() {
-    const studentIdInput = document.getElementById('student-id-input')?.value;
+    const studentIdInput = getBiometricStudentId();
     const statusText = document.getElementById('biometric-status');
     const resultBox = document.getElementById('face-result');
 
@@ -255,7 +268,7 @@ async function handleFaceScan() {
 }
 
 async function handleBiometricRegister() {
-    const studentIdInput = document.getElementById('student-id-input')?.value;
+    const studentIdInput = getBiometricStudentId();
     const statusText = document.getElementById('biometric-status');
 
     if (!studentIdInput) {
@@ -266,6 +279,7 @@ async function handleBiometricRegister() {
     try {
         if (statusText) statusText.textContent = 'กำลังรอการสแกนนิ้วมือ/ใบหน้า...';
         await biometricAuth.registerBiometrics(studentIdInput);
+        localStorage.setItem(BIOMETRIC_STUDENT_ID_KEY, studentIdInput);
         if (statusText) statusText.textContent = 'ลงทะเบียน Biometrics สำเร็จ!';
         alert('ผูกอุปกรณ์ด้วย Fingerprint / FaceID เรียบร้อยแล้ว');
     } catch (err) {
@@ -275,7 +289,7 @@ async function handleBiometricRegister() {
 }
 
 async function handleBiometricVerify() {
-    const studentIdInput = document.getElementById('student-id-input')?.value;
+    const studentIdInput = getBiometricStudentId();
     const statusText = document.getElementById('biometric-status');
 
     if (!studentIdInput) {
