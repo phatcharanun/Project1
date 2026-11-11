@@ -74,8 +74,6 @@
 
             <section id="biometrics" class="biometrics-section" aria-labelledby="biometrics-title">
                 <h2 id="biometrics-title">Biometrics</h2>
-                <label class="student-id-label" for="student-id-input">รหัสนักศึกษา</label>
-                <input type="text" id="student-id-input" placeholder="กรอกรหัสนักศึกษา" autocomplete="username">
                 <div class="biometric-actions">
                     <button id="btn-verify-bio" class="biometric-button" type="button" onclick="handleBiometricVerify()">
                         <span>สแกนลายนิ้วมือ</span>
@@ -87,16 +85,10 @@
                     </button>
                 </div>
                 <p class="biometric-status">สถานะ: <strong id="biometric-status">พร้อมใช้งาน</strong></p>
-                <details class="advanced-biometric">
-                    <summary>ตัวเลือกเพิ่มเติม</summary>
-                    <button id="btn-register-bio" type="button" onclick="handleBiometricRegister()">ลงทะเบียน Biometrics</button>
-                    <button id="btn-open-face-camera" type="button" onclick="startFaceCamera()">เรียกใช้ Face ID / Face Unlock</button>
-                    <video id="face-video" autoplay playsinline muted></video>
-                    <div id="face-result" class="info-box">สถานะ: รอการสแกนหน้า</div>
-                </details>
+
             </section>
 
-            <p class="risk-score">Risk Scoring: <span>รอข้อมูล</span></p>
+            <p class="risk-score">Trust Score : <span>รอข้อมูล</span></p>
         </main>
 
         <nav class="bottom-nav" aria-label="เมนูหลัก">

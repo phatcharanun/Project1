@@ -15,75 +15,52 @@ class BiometricAuth {
         }
     }
 
-    // ฟังก์ชันเฉพาะสำหรับ Face ID / Face Unlock ของระบบปฏิบัติการมือถือ
-    async registerFaceBiometrics(studentId) {
-        return this.registerBiometrics(studentId);
-    }
-
-    async verifyFaceBiometrics(studentId) {
-        return this.verifyBiometrics(studentId);
-    }
-
-    // ลงทะเบียน Biometrics (Register)
-    async registerBiometrics(studentId) {
-        if (!await this.checkSupport()) {
-            throw new Error('อุปกรณ์ของคุณไม่รองรับการสแกนนิ้วมือหรือใบหน้า');
-        }
-
-        const userId = new TextEncoder().encode(studentId);
-        const challenge = window.crypto.getRandomValues(new Uint8Array(32));
-
-        const publicKeyCredentialCreationOptions = {
-            challenge: challenge,
-            rp: {
-                name: "PWA Camera & GPS App",
-                id: window.location.hostname
-            },
-            user: {
-                id: userId,
-                name: studentId,
-                displayName: `Student: ${studentId}`
-            },
-            pubKeyCredParams: [{ alg: -7, type: "public-key" }], // ES256
-            authenticatorSelection: {
-                authenticatorAttachment: "platform", // บังคับใช้ biometric บนเครื่องมือถือ
-                userVerification: "required"
-            },
-            timeout: 60000
-        };
-
-        const credential = await navigator.credentials.create({
-            publicKey: publicKeyCredentialCreationOptions
-        });
-
-        // บันทึก Credential ID ไว้ในเครื่องชั่วคราว (หรือส่งไปบันทึกบน Server)
-        const credentialId = Array.from(new Uint8Array(credential.rawId));
-        localStorage.setItem(`biometric_credential_${studentId}`, JSON.stringify(credentialId));
-
-        return credential;
+    async verifyFaceBiometrics() {
+        return this.verifyBiometrics();
     }
 
     // ยืนยันตัวตนด้วย Biometrics (Authenticate)
-    async verifyBiometrics(studentId) {
+    async verifyBiometrics() {
         if (!await this.checkSupport()) {
             throw new Error('อุปกรณ์ของคุณไม่รองรับการสแกนนิ้วมือหรือใบหน้า');
         }
 
-        const savedCredential = localStorage.getItem(`biometric_credential_${studentId}`);
-        if (!savedCredential) {
-            throw new Error('ไม่พบข้อมูล Biometrics ในเครื่องนี้ กรุณาลงทะเบียนก่อน');
+        const allowCredentials = [];
+        const credentialPrefix = 'biometric_credential_';
+
+        for (let index = 0; index < localStorage.length; index += 1) {
+            const key = localStorage.key(index);
+            if (!key || !key.startsWith(credentialPrefix)) continue;
+
+            const savedCredential = localStorage.getItem(key);
+            let credentialId;
+            try {
+                credentialId = JSON.parse(savedCredential);
+            } catch {
+                throw new Error('ข้อมูล Biometrics ในเครื่องไม่ถูกต้อง');
+            }
+
+            if (!Array.isArray(credentialId) || credentialId.length === 0 ||
+                !credentialId.every(byte => Number.isInteger(byte) && byte >= 0 && byte <= 255)) {
+                throw new Error('ข้อมูล Biometrics ในเครื่องไม่ถูกต้อง');
+            }
+
+            allowCredentials.push({
+                id: new Uint8Array(credentialId),
+                type: 'public-key',
+                transports: ['internal']
+            });
         }
 
-        const rawId = new Uint8Array(JSON.parse(savedCredential));
+        if (allowCredentials.length === 0) {
+            throw new Error('ไม่พบ Biometrics ที่บันทึกไว้ในเครื่องนี้');
+        }
+
         const challenge = window.crypto.getRandomValues(new Uint8Array(32));
 
         const publicKeyCredentialRequestOptions = {
             challenge: challenge,
-            allowCredentials: [{
-                id: rawId,
-                type: 'public-key',
-                transports: ['internal']
-            }],
+            allowCredentials,
             userVerification: "required",
             timeout: 60000
         };
@@ -91,6 +68,10 @@ class BiometricAuth {
         const assertion = await navigator.credentials.get({
             publicKey: publicKeyCredentialRequestOptions
         });
+
+        if (!assertion) {
+            throw new Error('การยืนยันตัวตนจากเครื่องไม่สำเร็จ');
+        }
 
         return assertion;
     }
@@ -203,33 +184,14 @@ class FaceScanner {
 
 const biometricAuth = new BiometricAuth();
 const faceScanner = new FaceScanner();
-const BIOMETRIC_STUDENT_ID_KEY = 'biometric_student_id';
-
-function getBiometricStudentId() {
-    const input = document.getElementById('student-id-input');
-    const enteredId = input?.value.trim();
-    const studentId = enteredId || localStorage.getItem(BIOMETRIC_STUDENT_ID_KEY) || '';
-
-    if (input && !enteredId && studentId) {
-        input.value = studentId;
-    }
-
-    return studentId;
-}
 
 async function startFaceCamera() {
-    const studentIdInput = getBiometricStudentId();
     const statusText = document.getElementById('biometric-status');
     const resultBox = document.getElementById('face-result');
 
-    if (!studentIdInput) {
-        alert('กรุณากรอกรหัสนักศึกษาเพื่อเรียกใช้ Face ID / Face Unlock');
-        return;
-    }
-
     try {
         if (statusText) statusText.textContent = 'กำลังเรียกใช้ Face ID / Face Unlock ของระบบปฏิบัติการ...';
-        const result = await biometricAuth.verifyFaceBiometrics(studentIdInput);
+        await biometricAuth.verifyFaceBiometrics();
         if (resultBox) {
             resultBox.innerHTML = '<strong>ยืนยันใบหน้าโดยระบบปฏิบัติการมือถือตรงตาม Face ID / Face Unlock แล้ว</strong><br>ใช้สิทธิ์สแกนใบหน้าจาก OS ของอุปกรณ์';
         }
@@ -242,68 +204,35 @@ async function startFaceCamera() {
 }
 
 async function handleFaceScan() {
-    const studentIdInput = getBiometricStudentId();
     const statusText = document.getElementById('biometric-status');
     const resultBox = document.getElementById('face-result');
 
-    if (!studentIdInput) {
-        alert('กรุณากรอกรหัสนักศึกษาเพื่อสแกนใบหน้า');
-        return;
-    }
-
     try {
-        if (statusText) statusText.textContent = 'กำลังเรียกใช้ Face ID / Face Unlock...';
-        await biometricAuth.verifyFaceBiometrics(studentIdInput);
+        if (statusText) statusText.textContent = 'กำลังยืนยันตัวตนผ่าน WebAuthn ของอุปกรณ์...';
+        await biometricAuth.verifyBiometrics();
         if (resultBox) {
-            resultBox.innerHTML = '<strong>สแกนใบหน้าเรียบร้อยแล้ว</strong><br>ใช้งาน Face ID / Face Unlock จากระบบปฏิบัติการมือถือ';
+            resultBox.innerHTML = '<strong>ยืนยันตัวตนผ่าน WebAuthn ของอุปกรณ์สำเร็จ</strong><br>อุปกรณ์จะใช้วิธียืนยันตัวตนที่ตั้งค่าไว้ เช่น ใบหน้าหรือลายนิ้วมือ';
         }
         if (statusText) {
-            statusText.textContent = 'สแกนใบหน้าโดยระบบปฏิบัติการสำเร็จ';
+            statusText.textContent = 'ยืนยันตัวตนผ่าน WebAuthn สำเร็จ';
         }
     } catch (err) {
-        if (statusText) statusText.textContent = 'ไม่สามารถสแกนใบหน้าได้';
+        if (statusText) statusText.textContent = 'ยืนยันตัวตนผ่าน WebAuthn ไม่สำเร็จ';
         if (resultBox) resultBox.innerHTML = `ข้อผิดพลาด: ${err.message}`;
         alert(err.message);
     }
 }
 
-async function handleBiometricRegister() {
-    const studentIdInput = getBiometricStudentId();
-    const statusText = document.getElementById('biometric-status');
-
-    if (!studentIdInput) {
-        alert('กรุณากรอกรหัสนักศึกษาก่อนลงทะเบียน Biometrics');
-        return;
-    }
-
-    try {
-        if (statusText) statusText.textContent = 'กำลังรอการสแกนนิ้วมือ/ใบหน้า...';
-        await biometricAuth.registerBiometrics(studentIdInput);
-        localStorage.setItem(BIOMETRIC_STUDENT_ID_KEY, studentIdInput);
-        if (statusText) statusText.textContent = 'ลงทะเบียน Biometrics สำเร็จ!';
-        alert('ผูกอุปกรณ์ด้วย Fingerprint / FaceID เรียบร้อยแล้ว');
-    } catch (err) {
-        if (statusText) statusText.textContent = 'การลงทะเบียนล้มเหลว';
-        alert(`เกิดข้อผิดพลาด: ${err.message}`);
-    }
-}
-
 async function handleBiometricVerify() {
-    const studentIdInput = getBiometricStudentId();
     const statusText = document.getElementById('biometric-status');
-
-    if (!studentIdInput) {
-        alert('กรุณากรอกรหัสนักศึกษา');
-        return;
-    }
 
     try {
         if (statusText) statusText.textContent = 'กำลังรอการยืนยันตัวตน...';
-        await biometricAuth.verifyBiometrics(studentIdInput);
-        if (statusText) statusText.textContent = 'ยืนยันตัวตนสำเร็จ!';
-        alert('สแกนผ่านเรียบร้อย! เข้าสู่ระบบสำเร็จ');
+        await biometricAuth.verifyBiometrics();
+        if (statusText) statusText.textContent = 'ยืนยันตัวตนผ่าน WebAuthn สำเร็จ!';
+        alert('ยืนยันตัวตนจากอุปกรณ์สำเร็จ');
     } catch (err) {
-        if (statusText) statusText.textContent = 'ยืนยันตัวตนไม่สำเร็จ';
+        if (statusText) statusText.textContent = 'ยืนยันตัวตนผ่าน WebAuthn ไม่สำเร็จ';
         alert(`ยืนยันตัวตนล้มเหลว: ${err.message}`);
     }
 }
