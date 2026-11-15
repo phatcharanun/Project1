@@ -1,4 +1,4 @@
-const CACHE_NAME = 'camera-gps-app-v9';
+const CACHE_NAME = 'camera-gps-app-v10';
 
 const APP_SHELL = [
     './',
