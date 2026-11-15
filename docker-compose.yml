@@ -1,0 +1,30 @@
+
+services:
+  # 1. ฐานข้อมูลหลัก + ข้อมูลเชิงพื้นที่ (PostgreSQL + PostGIS)
+  postgres-postgis:
+    image: postgis/postgis:15-3.3
+    container_name: cams_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: cams_admin
+      POSTGRES_PASSWORD: cams_1234
+      POSTGRES_DB: cams_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./Backend/init.sql:/docker-entrypoint-initdb.d/init.sql # รันสร้างตารางอัตโนมัติตอนเปิดครั้งแรก
+
+  # 2. ระบบแคชความเร็วสูง (Redis สำหรับ Dynamic QR & Session)
+  redis-cache:
+    image: redis:7-alpine
+    container_name: cams_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+volumes:
+  pgdata:
+  redisdata:

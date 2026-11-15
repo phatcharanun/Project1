@@ -208,16 +208,16 @@ async function handleFaceScan() {
     const resultBox = document.getElementById('face-result');
 
     try {
-        if (statusText) statusText.textContent = 'กำลังยืนยันตัวตนผ่าน WebAuthn ของอุปกรณ์...';
-        await biometricAuth.verifyBiometrics();
+        if (statusText) statusText.textContent = 'กำลังเรียกใช้ Face ID / Face Unlock...';
+        await biometricAuth.verifyFaceBiometrics();
         if (resultBox) {
-            resultBox.innerHTML = '<strong>ยืนยันตัวตนผ่าน WebAuthn ของอุปกรณ์สำเร็จ</strong><br>อุปกรณ์จะใช้วิธียืนยันตัวตนที่ตั้งค่าไว้ เช่น ใบหน้าหรือลายนิ้วมือ';
+            resultBox.innerHTML = '<strong>สแกนใบหน้าเรียบร้อยแล้ว</strong><br>ใช้งาน Face ID / Face Unlock จากระบบปฏิบัติการมือถือ';
         }
         if (statusText) {
-            statusText.textContent = 'ยืนยันตัวตนผ่าน WebAuthn สำเร็จ';
+            statusText.textContent = 'สแกนใบหน้าโดยระบบปฏิบัติการสำเร็จ';
         }
     } catch (err) {
-        if (statusText) statusText.textContent = 'ยืนยันตัวตนผ่าน WebAuthn ไม่สำเร็จ';
+        if (statusText) statusText.textContent = 'ไม่สามารถสแกนใบหน้าได้';
         if (resultBox) resultBox.innerHTML = `ข้อผิดพลาด: ${err.message}`;
         alert(err.message);
     }
@@ -229,10 +229,10 @@ async function handleBiometricVerify() {
     try {
         if (statusText) statusText.textContent = 'กำลังรอการยืนยันตัวตน...';
         await biometricAuth.verifyBiometrics();
-        if (statusText) statusText.textContent = 'ยืนยันตัวตนผ่าน WebAuthn สำเร็จ!';
-        alert('ยืนยันตัวตนจากอุปกรณ์สำเร็จ');
+        if (statusText) statusText.textContent = 'ยืนยันตัวตนสำเร็จ!';
+        alert('สแกนผ่านเรียบร้อย! เข้าสู่ระบบสำเร็จ');
     } catch (err) {
-        if (statusText) statusText.textContent = 'ยืนยันตัวตนผ่าน WebAuthn ไม่สำเร็จ';
+        if (statusText) statusText.textContent = 'ยืนยันตัวตนไม่สำเร็จ';
         alert(`ยืนยันตัวตนล้มเหลว: ${err.message}`);
     }
 }
