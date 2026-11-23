@@ -19,6 +19,63 @@ class BiometricAuth {
         return this.verifyBiometrics();
     }
 
+    // ตรวจสอบว่ามีข้อมูลลงทะเบียนไว้ในเครื่องนี้แล้วหรือไม่
+    hasRegisteredCredential() {
+        const credentialPrefix = 'biometric_credential_';
+        for (let index = 0; index < localStorage.length; index += 1) {
+            const key = localStorage.key(index);
+            if (key && key.startsWith(credentialPrefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ลงทะเบียน Biometrics (สร้าง Credential ใหม่บนอุปกรณ์นี้)
+    async registerBiometrics(username = 'student') {
+        if (!await this.checkSupport()) {
+            throw new Error('อุปกรณ์ของคุณไม่รองรับการสแกนนิ้วมือหรือใบหน้า (Platform Authenticator)');
+        }
+
+        const userId = window.crypto.getRandomValues(new Uint8Array(16));
+        const challenge = window.crypto.getRandomValues(new Uint8Array(32));
+
+        const publicKeyCredentialCreationOptions = {
+            challenge,
+            rp: {
+                name: "CAMS Attendance",
+                id: window.location.hostname
+            },
+            user: {
+                id: userId,
+                name: username,
+                displayName: `Student: ${username}`
+            },
+            pubKeyCredParams: [
+                { alg: -7, type: "public-key" },  // ES256
+                { alg: -257, type: "public-key" } // RS256 (Windows Hello)
+            ],
+            authenticatorSelection: {
+                authenticatorAttachment: "platform", // สแกนนิ้วมือ/Face บนเครื่อง
+                userVerification: "required"
+            },
+            timeout: 60000
+        };
+
+        const credential = await navigator.credentials.create({
+            publicKey: publicKeyCredentialCreationOptions
+        });
+
+        if (!credential) {
+            throw new Error('การลงทะเบียนสแกนนิ้วมือไม่สำเร็จ');
+        }
+
+        const credentialId = Array.from(new Uint8Array(credential.rawId));
+        localStorage.setItem(`biometric_credential_${username}`, JSON.stringify(credentialId));
+
+        return credential;
+    }
+
     // ยืนยันตัวตนด้วย Biometrics (Authenticate)
     async verifyBiometrics() {
         if (!await this.checkSupport()) {
@@ -37,23 +94,22 @@ class BiometricAuth {
             try {
                 credentialId = JSON.parse(savedCredential);
             } catch {
-                throw new Error('ข้อมูล Biometrics ในเครื่องไม่ถูกต้อง');
+                continue;
             }
 
-            if (!Array.isArray(credentialId) || credentialId.length === 0 ||
-                !credentialId.every(byte => Number.isInteger(byte) && byte >= 0 && byte <= 255)) {
-                throw new Error('ข้อมูล Biometrics ในเครื่องไม่ถูกต้อง');
+            if (Array.isArray(credentialId) && credentialId.length > 0 &&
+                credentialId.every(byte => Number.isInteger(byte) && byte >= 0 && byte <= 255)) {
+                allowCredentials.push({
+                    id: new Uint8Array(credentialId),
+                    type: 'public-key',
+                    transports: ['internal']
+                });
             }
-
-            allowCredentials.push({
-                id: new Uint8Array(credentialId),
-                type: 'public-key',
-                transports: ['internal']
-            });
         }
 
+        // หากยังไม่เคยลงทะเบียนในโดเมนนี้มาก่อน ให้สลับไปลงทะเบียนผูกอุปกรณ์ครั้งแรกทันที
         if (allowCredentials.length === 0) {
-            throw new Error('ไม่พบ Biometrics ที่บันทึกไว้ในเครื่องนี้');
+            return await this.registerBiometrics();
         }
 
         const challenge = window.crypto.getRandomValues(new Uint8Array(32));
@@ -227,12 +283,47 @@ async function handleBiometricVerify() {
     const statusText = document.getElementById('biometric-status');
 
     try {
-        if (statusText) statusText.textContent = 'กำลังรอการยืนยันตัวตน...';
+        const isRegistered = biometricAuth.hasRegisteredCredential();
+        if (statusText) {
+            statusText.textContent = isRegistered
+                ? 'กำลังรอการยืนยันลายนิ้วมือ/ใบหน้า...'
+                : 'กำลังลงทะเบียนลายนิ้วมือเพื่อผูกอุปกรณ์ครั้งแรก...';
+        }
+
         await biometricAuth.verifyBiometrics();
-        if (statusText) statusText.textContent = 'ยืนยันตัวตนสำเร็จ!';
-        alert('สแกนผ่านเรียบร้อย! เข้าสู่ระบบสำเร็จ');
+
+        if (statusText) {
+            statusText.textContent = isRegistered
+                ? 'ยืนยันตัวตนสำเร็จ!'
+                : 'ลงทะเบียนลายนิ้วมือสำเร็จ!';
+        }
+        alert(isRegistered
+            ? 'สแกนลายนิ้วมือผ่านเรียบร้อย! เข้าสู่ระบบสำเร็จ'
+            : 'ลงทะเบียนลายนิ้วมือกับอุปกรณ์นี้เรียบร้อยแล้ว! ครั้งต่อไปสามารถแตะสแกนเพื่อยืนยันตัวตนได้ทันที');
     } catch (err) {
         if (statusText) statusText.textContent = 'ยืนยันตัวตนไม่สำเร็จ';
-        alert(`ยืนยันตัวตนล้มเหลว: ${err.message}`);
+        if (err.name === 'NotAllowedError') {
+            alert('การสแกนถูกยกเลิก หรือหมดเวลา');
+        } else {
+            alert(`ยืนยันตัวตนล้มเหลว: ${err.message}`);
+        }
+    }
+}
+
+async function handleBiometricRegister() {
+    const statusText = document.getElementById('biometric-status');
+
+    try {
+        if (statusText) statusText.textContent = 'กำลังลงทะเบียนลายนิ้วมือใหม่...';
+        await biometricAuth.registerBiometrics();
+        if (statusText) statusText.textContent = 'ลงทะเบียนลายนิ้วมือสำเร็จ!';
+        alert('ลงทะเบียนลายนิ้วมือกับอุปกรณ์นี้เรียบร้อยแล้ว');
+    } catch (err) {
+        if (statusText) statusText.textContent = 'ลงทะเบียนไม่สำเร็จ';
+        if (err.name === 'NotAllowedError') {
+            alert('การลงทะเบียนถูกยกเลิก หรือหมดเวลา');
+        } else {
+            alert(`ลงทะเบียนล้มเหลว: ${err.message}`);
+        }
     }
 }
