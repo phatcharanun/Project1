@@ -6,16 +6,41 @@ services:
     container_name: cams_postgres
     restart: always
     environment:
-      POSTGRES_USER: cams_admin
-      POSTGRES_PASSWORD: cams_1234
-      POSTGRES_DB: cams_db
+      POSTGRES_USER: ${POSTGRES_USER:-cams_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cams_1234}
+      POSTGRES_DB: ${POSTGRES_DB:-cams_db}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./Backend/init.sql:/docker-entrypoint-initdb.d/init.sql # รันสร้างตารางอัตโนมัติตอนเปิดครั้งแรก
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
-  # 2. ระบบแคชความเร็วสูง (Redis สำหรับ Dynamic QR & Session)
+  # 2. API เชื่อมต่อ PostGIS และเสิร์ฟหน้าเว็บใน origin เดียวกัน
+  geofence-api:
+    build:
+      context: .
+      dockerfile: Backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-development}
+      DB_HOST: postgres-postgis
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-cams_admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-cams_1234}
+      DB_NAME: ${POSTGRES_DB:-cams_db}
+    depends_on:
+      postgres-postgis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  # 3. ระบบแคชความเร็วสูง (Redis สำหรับ Dynamic QR & Session)
   redis-cache:
     image: redis:7-alpine
     container_name: cams_redis

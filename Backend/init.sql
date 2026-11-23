@@ -128,6 +128,23 @@ $$;
 COMMENT ON FUNCTION point_in_geofence(GEOMETRY, GEOMETRY) IS
     'Returns true when an SRID 4326 point is in or on a valid Polygon geofence, using ray casting.';
 
+-- Default geofence used by the UI before an attendance session QR is scanned.
+CREATE TABLE IF NOT EXISTS geofence_config (
+    config_id SMALLINT PRIMARY KEY CHECK (config_id = 1),
+    geofence_polygon GEOMETRY(Polygon, 4326) NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO geofence_config (config_id, geofence_polygon)
+VALUES (
+    1,
+    ST_GeomFromText(
+        'POLYGON((100.5141875 13.7673287,100.5143026 13.7672779,100.5144386 13.7672182,100.5143928 13.7671229,100.5141392 13.7672322,100.5141875 13.7673287))',
+        4326
+    )
+)
+ON CONFLICT (config_id) DO NOTHING;
+
 -- สร้าง Spatial Index (GiST) เพื่อเพิ่มความเร็วในการคำนวณ Ray-Casting
 CREATE INDEX idx_session_geofence ON attendance_session USING GIST (geofence_polygon);
 

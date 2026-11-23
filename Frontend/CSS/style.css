@@ -283,19 +283,6 @@ main.container {
 	color: #123b37;
 }
 
-.coordinates {
-	display: flex;
-	justify-content: space-between;
-	gap: 8px;
-	padding: 6px 3px 0;
-	color: var(--muted);
-	font-size: 0.65rem;
-}
-
-.coordinates span:last-child {
-	font-variant-numeric: tabular-nums;
-}
-
 .scan-section {
 	display: flex;
 	flex-direction: column;
@@ -558,11 +545,6 @@ button {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-}
-
-.biometric-button-secondary {
-	background: var(--mint);
-	color: #123b37;
 }
 
 .biometric-status {

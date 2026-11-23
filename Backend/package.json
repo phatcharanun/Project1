@@ -1,0 +1,15 @@
+{
+  "name": "project1-geofence-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PostGIS-backed geofence API and frontend server",
+  "main": "Node.js",
+  "scripts": {
+    "start": "node Node.js",
+    "test": "node --test Node.test.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  }
+}

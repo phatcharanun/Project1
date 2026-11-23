@@ -1,67 +1,85 @@
-let watchId = null;
+let gpsRequestPending = false;
+let activeSessionId = null;
+let lastPosition = null;
+let geofenceCheckSequence = 0;
 
-/*
-  กำหนดขอบเขต Geofence เป็น Polygon (รูปหลายเหลี่ยม)
-  ใส่จุดมุมของพื้นที่เรียงต่อเนื่องรอบรูป (ตามเข็มหรือทวนเข็มก็ได้)
-  ตัวอย่างนี้เป็นสี่เหลี่ยม 4 มุม — เพิ่ม/ลดจุดได้ตามรูปทรงจริงของห้อง/อาคาร
-*/
-const GEOFENCE_POLYGON = [
-    { lat: 13.7673287, lng: 100.5141875 }, // จุดที่ 1 (จุดเริ่มต้น)
-    { lat: 13.7672779, lng: 100.5143026 }, // จุดที่ 2
-    { lat: 13.7672182, lng: 100.5144386 }, // จุดที่ 3
-    { lat: 13.7671229, lng: 100.5143928 }, // จุดที่ 4
-    { lat: 13.7672322, lng: 100.5141392 }, // จุดที่ 5
-    { lat: 13.7673287, lng: 100.5141875 }  // จุดที่ 6 (จุดปิดลูป ค่าเท่ากับจุดที่ 1)
-];
+const SESSION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
- 
+function setGeofenceStatus(message, color, bold) {
+    const statusElem = document.getElementById('geofence-status');
+    statusElem.textContent = message;
+    statusElem.style.color = color;
+    statusElem.style.fontWeight = bold ? 'bold' : 'normal';
+}
 
-// ฟังก์ชันเปิด/ปิดการติดตาม GPS
+function setGeofenceSessionFromQr(qrData) {
+    let sessionId = qrData.trim();
+    try {
+        const payload = JSON.parse(sessionId);
+        if (payload && typeof payload === 'object') {
+            sessionId = payload.session_id;
+        }
+    } catch (error) {
+        // A raw UUID is also a supported QR payload.
+    }
+
+    if (typeof sessionId !== 'string' || !SESSION_ID_PATTERN.test(sessionId)) {
+        console.warn('[Geofence] QR session rejected: expected a UUID or JSON with session_id.');
+        setGeofenceStatus('QR ไม่มี session_id ที่ถูกต้อง', 'red', false);
+        return false;
+    }
+
+    activeSessionId = sessionId;
+    console.log('[Geofence] QR session accepted.');
+    if (lastPosition) {
+        checkGeofence(lastPosition.latitude, lastPosition.longitude);
+    } else {
+        setGeofenceStatus('รับ QR แล้ว กรุณาเปิด GPS', '#555', false);
+    }
+    return true;
+}
+
 function toggleGPS() {
     const btn = document.getElementById('btn-get-location');
 
-    if (watchId === null) {
-        if ('geolocation' in navigator) {
-            // เริ่มติดตามพิกัดตำแหน่ง
-            watchId = navigator.geolocation.watchPosition(
-                handleSuccess,
-                handleError,
-                {
-                    enableHighAccuracy: true, // ขอความแม่นยำสูง
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
-            btn.setAttribute('aria-label', 'ปิดการติดตาม GPS');
-            btn.title = 'ปิดการติดตาม GPS';
-            btn.classList.add('is-active');
-        } else {
-            alert('อุปกรณ์ของคุณไม่รองรับ Geolocation API');
-        }
-    } else {
-        // ยกเลิกการติดตาม
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-
-        document.getElementById('lat-val').innerText = '-';
-        document.getElementById('lng-val').innerText = '-';
-        document.getElementById('geofence-status').innerText = 'ปิดใช้งาน';
-        document.getElementById('geofence-status').style.color = '#000';
-
-        btn.setAttribute('aria-label', 'เปิดใช้งาน GPS ติดตามตำแหน่ง');
-        btn.title = 'เปิดใช้งาน GPS ติดตามตำแหน่ง';
-        btn.classList.remove('is-active');
+    if (gpsRequestPending) {
+        return;
     }
+    if (!window.isSecureContext) {
+        setGeofenceStatus('GPS ต้องใช้งานผ่าน HTTPS หรือ localhost', 'red', false);
+        return;
+    }
+    if (!('geolocation' in navigator)) {
+        setGeofenceStatus('อุปกรณ์ไม่รองรับ Geolocation API', 'red', false);
+        return;
+    }
+
+    gpsRequestPending = true;
+    btn.disabled = true;
+    setGeofenceStatus('กำลังระบุตำแหน่ง GPS...', '#555', false);
+    navigator.geolocation.getCurrentPosition(
+        position => {
+            gpsRequestPending = false;
+            btn.disabled = false;
+            handleSuccess(position);
+        },
+        error => {
+            gpsRequestPending = false;
+            btn.disabled = false;
+            handleError(error);
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
 }
 
-// Callback เมื่ออ่านค่าตำแหน่งสำเร็จ
 function handleSuccess(position) {
     const currentLat = position.coords.latitude;
     const currentLng = position.coords.longitude;
-
-    // อัปเดต UI พิกัด
-    document.getElementById('lat-val').innerText = currentLat.toFixed(6);
-    document.getElementById('lng-val').innerText = currentLng.toFixed(6);
+    lastPosition = { latitude: currentLat, longitude: currentLng };
 
     const map = document.getElementById('location-map');
     const mapCell = `${currentLat.toFixed(4)},${currentLng.toFixed(4)}`;
@@ -74,87 +92,79 @@ function handleSuccess(position) {
         map.dataset.mapCell = mapCell;
     }
 
-    // ตรวจสอบสถานะ Geofence
     checkGeofence(currentLat, currentLng);
 }
 
-// Callback เมื่อเกิดข้อผิดพลาด
 function handleError(error) {
-    console.error("GPS Error: ", error);
-    let message = "เกิดข้อผิดพลาดในการดึงตำแหน่ง";
-    if (error.code === error.PERMISSION_DENIED) {
-        message = "ผู้ใช้ปฏิเสธการเข้าถึงสิทธิ์ตำแหน่ง (Location Permission)";
-    }
-    alert(message);
+    console.error('GPS Error:', error);
+    const message = error.code === error.PERMISSION_DENIED
+        ? 'ผู้ใช้ปฏิเสธการเข้าถึงตำแหน่ง'
+        : 'เกิดข้อผิดพลาดในการดึงตำแหน่ง';
+    setGeofenceStatus(message, 'red', false);
 }
 
-/*
-  ตรวจสอบว่าจุด (lat, lng) อยู่ภายใน Polygon หรือไม่
-  ใช้อัลกอริทึม Ray Casting: ลากเส้นแนวนอนจากจุดออกไปด้านขวา
-  แล้วนับจำนวนครั้งที่เส้นนี้ตัดกับด้านของ Polygon
-  ถ้าตัดเป็นจำนวนคี่ = อยู่ข้างใน, ถ้าเป็นจำนวนคู่ = อยู่ข้างนอก
-  (แม่นยำเพียงพอสำหรับพื้นที่ขนาดเล็กระดับอาคาร/ห้องเรียน)
-*/
-function isPointInPolygon(lat, lng, polygon) {
-    let inside = false;
-    const n = polygon.length;
+async function checkGeofence(latitude, longitude) {
+    const requestSequence = ++geofenceCheckSequence;
+    const checkMode = activeSessionId ? 'QR session' : 'default geofence';
+    console.log(`[Geofence] Check started (${checkMode}).`);
+    setGeofenceStatus('กำลังตรวจสอบพื้นที่กับ PostGIS...', '#555', false);
 
-    for (let i = 0, j = n - 1; i < n; j = i++) {
-        const xi = polygon[i].lng, yi = polygon[i].lat;
-        const xj = polygon[j].lng, yj = polygon[j].lat;
+    try {
+        const requestBody = { latitude, longitude };
+        if (activeSessionId) {
+            requestBody.session_id = activeSessionId;
+        }
+        const response = await fetch('/api/geofence/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+        const result = await response.json();
 
-        const intersects =
-            (yi > lat) !== (yj > lat) &&
-            lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
-
-        if (intersects) inside = !inside;
-    }
-    return inside;
-}
-
-// คำนวณระยะทางจากจุดผู้ใช้ไปยังจุดที่ใกล้ที่สุดบน Polygon
-function calculateDistanceToPolygon(lat, lng, polygon) {
-    let minDistance = Number.POSITIVE_INFINITY;
-
-    for (let i = 0; i < polygon.length; i++) {
-        const p1 = polygon[i];
-        const p2 = polygon[(i + 1) % polygon.length];
-
-        const dx = p2.lng - p1.lng;
-        const dy = p2.lat - p1.lat;
-        const lengthSquared = dx * dx + dy * dy;
-
-        if (lengthSquared === 0) {
-            const dist = Math.hypot(lat - p1.lat, lng - p1.lng);
-            minDistance = Math.min(minDistance, dist);
-            continue;
+        if (requestSequence !== geofenceCheckSequence) {
+            return;
+        }
+        if (response.status === 404) {
+            console.warn(`[Geofence] Check failed (${checkMode}): session not found.`);
+            setGeofenceStatus('ไม่พบรอบเช็คชื่อนี้', 'red', false);
+            return;
+        }
+        if (response.status === 410) {
+            console.warn(`[Geofence] Check failed (${checkMode}): session is not active.`);
+            setGeofenceStatus('รอบเช็คชื่อนี้ยังไม่เริ่มหรือหมดเวลาแล้ว', 'red', false);
+            return;
+        }
+        if (response.status === 503 && result.error === 'DEFAULT_GEOFENCE_NOT_CONFIGURED') {
+            console.warn('[Geofence] Check failed (default geofence): not configured.');
+            setGeofenceStatus('ยังไม่ได้ตั้งค่า Geofence ใน PostGIS', 'red', false);
+            return;
+        }
+        if (!response.ok || typeof result.inside !== 'boolean') {
+            throw new Error(`Geofence API returned HTTP ${response.status}`);
         }
 
-        const t = ((lat - p1.lat) * (p2.lat - p1.lat) + (lng - p1.lng) * (p2.lng - p1.lng)) / lengthSquared;
-        const clampedT = Math.max(0, Math.min(1, t));
-
-        const closestLat = p1.lat + clampedT * dy;
-        const closestLng = p1.lng + clampedT * dx;
-        const dist = Math.hypot(lat - closestLat, lng - closestLng);
-        minDistance = Math.min(minDistance, dist);
-    }
-
-    return minDistance * 111000;
-}
-
-// ตรวจสอบว่าพิกัดปัจจุบันอยู่ในขอบเขต Geofence Polygon หรือไม่
-function checkGeofence(userLat, userLng) {
-    const statusElem = document.getElementById('geofence-status');
-    const isInside = isPointInPolygon(userLat, userLng, GEOFENCE_POLYGON);
-
-    if (isInside) {
-        statusElem.innerText = 'อยู่ในเขตพื้นที่';
-        statusElem.style.color = 'green';
-        statusElem.style.fontWeight = 'bold';
-    } else {
-        const distanceMeters = calculateDistanceToPolygon(userLat, userLng, GEOFENCE_POLYGON);
-        statusElem.innerText = `อยู่นอกเขตพื้นที่ ${distanceMeters.toFixed(1)} m`;
-        statusElem.style.color = 'red';
-        statusElem.style.fontWeight = 'normal';
+        console.log('[Geofence] Check result:', {
+            mode: checkMode,
+            status: result.status,
+            source: result.source,
+            inside: result.inside,
+            distance_meters: result.distance_meters
+        });
+        const distanceText = !result.inside && Number.isFinite(result.distance_meters)
+            ? ` ${result.distance_meters.toFixed(1)} m`
+            : '';
+        setGeofenceStatus(
+            result.inside
+                ? 'อยู่ในเขตพื้นที่ (PostGIS)'
+                : `อยู่นอกเขตพื้นที่${distanceText} (PostGIS)`,
+            result.inside ? 'green' : 'red',
+            result.inside
+        );
+    } catch (error) {
+        if (requestSequence !== geofenceCheckSequence) {
+            return;
+        }
+        console.error(`[Geofence] API request failed (${checkMode}):`, error);
+        setGeofenceStatus('ตรวจสอบพื้นที่ไม่ได้ กรุณาลองใหม่', 'red', false);
     }
 }

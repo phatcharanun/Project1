@@ -34,15 +34,11 @@
                     <iframe id="location-map" title="แผนที่ตำแหน่งปัจจุบัน" loading="lazy"
                         src="https://www.openstreetmap.org/export/embed.html?bbox=100.5139%2C13.7670%2C100.5147%2C13.7675&amp;layer=mapnik&amp;marker=13.76725%2C100.51427"></iframe>
                     <div class="map-status"><span class="gps-dot"></span> GPS: <span id="geofence-status">รอระบุตำแหน่ง</span></div>
-                    <button id="btn-get-location" class="map-location-button" onclick="toggleGPS()" aria-label="เปิดหรือปิด GPS" title="เปิดหรือปิด GPS">
+                    <button id="btn-get-location" class="map-location-button" onclick="toggleGPS()" aria-label="ตรวจสอบตำแหน่ง GPS หนึ่งครั้ง" title="ตรวจสอบตำแหน่ง GPS หนึ่งครั้ง">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/></svg>
                     </button>
                 </div>
                 <div class="map-attribution">แผนที่ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></div>
-                <div class="coordinates" aria-live="polite">
-                    <span>ตำแหน่งปัจจุบัน</span>
-                    <span><span id="lat-val">-</span>, <span id="lng-val">-</span></span>
-                </div>
             </section>
 
             <section id="scan" class="scan-section" aria-labelledby="scan-title">
@@ -84,7 +80,6 @@
                     </button>
                 </div>
                 <p class="biometric-status">สถานะ: <strong id="biometric-status">พร้อมใช้งาน</strong></p>
-
             </section>
 
             <p class="risk-score">Trust Score : <span>รอข้อมูล</span></p>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'camera-gps-app-v10';
+const CACHE_NAME = 'camera-gps-app-v19';
 
 const APP_SHELL = [
     './',
@@ -6,7 +6,7 @@ const APP_SHELL = [
     './pwa/manifest.json',
     './CSS/style.css',
     './js/camera.js',
-    './js/location.js',
+    './js/Geofence.js',
     './qr-code-scanner/config.js',
     './qr-code-scanner/scanner.js',
     './qr-code-scanner/index.js',
@@ -35,6 +35,19 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+    // 1. อนุญาตให้คำขอที่ไม่ใช่ GET (เช่น POST /api/geofence/check) ผ่านไปยัง Network ปกติโดยไม่ดักจับ
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
+    const url = new URL(event.request.url);
+
+    // 2. ไม่ดักจับหรือแคช API endpoints
+    if (url.pathname.startsWith('/api')) {
+        return;
+    }
+
+    // 3. ดึงไฟล์ UI / Static Assets จากแคชก่อน ถ้าไม่มีจึงดึงผ่าน Network
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
             return cachedResponse || fetch(event.request);
