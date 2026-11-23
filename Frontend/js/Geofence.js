@@ -119,9 +119,15 @@ async function checkGeofence(latitude, longitude) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody)
         });
-        const result = await response.json();
+        const isJson = (response.headers.get('content-type') || '').includes('application/json');
+        const result = isJson ? await response.json() : null;
 
         if (requestSequence !== geofenceCheckSequence) {
+            return;
+        }
+        if (!result) {
+            console.error(`[Geofence] API unavailable (${checkMode}): HTTP ${response.status}, non-JSON response.`);
+            setGeofenceStatus('ไม่พบเซิร์ฟเวอร์ตรวจสอบพื้นที่', 'red', false);
             return;
         }
         if (response.status === 404) {
