@@ -1,6 +1,6 @@
 # Render Blueprint: Geofence API (Node.js + Express) built from Backend/Dockerfile.
-# The PostGIS database is hosted separately (e.g. Neon); set DATABASE_URL in the
-# Render dashboard when the Blueprint asks for it.
+# PostGIS (e.g. Neon), Redis and SMTP are hosted separately; set the "sync: false" values in the
+# Render dashboard when the Blueprint asks for them (only asked on first creation).
 services:
   - type: web
     name: cams-geofence-api
@@ -15,4 +15,26 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: RP_ID
+        value: cams-alpha-navy.vercel.app
+      - key: WEBAUTHN_ORIGIN
+        value: https://cams-alpha-navy.vercel.app
+      - key: STUDENT_EMAIL_DOMAIN
+        value: cdti.ac.th
+      - key: OTP_PEPPER
+        generateValue: true
+      # Render's free plan blocks outbound ports 25, 465 and 587: use a provider
+      # that accepts another port (e.g. 2525) or a paid plan.
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
         sync: false
