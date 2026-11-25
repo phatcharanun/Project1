@@ -15,8 +15,36 @@
     <link rel="stylesheet" href="qr-code-scanner/scanner.css">
 </head>
 <body>
+    <script>
+        // Show the login screen before first paint when this device has no bound student.
+        if (!localStorage.getItem('cams_student_id')) document.body.classList.add('logged-out');
+    </script>
 
     <div class="app-shell">
+        <section id="login-screen" class="login-screen" aria-labelledby="login-title">
+            <p class="login-brand">For Students</p>
+
+            <form id="login-email-step" class="login-form" onsubmit="handleLoginEmail(event)" novalidate>
+                <h1 id="login-title">Create an account</h1>
+                <p>Enter your email to sign up for this app</p>
+                <label class="visually-hidden" for="login-email">อีเมลสถาบัน</label>
+                <input id="login-email" type="email" inputmode="email" autocomplete="username" placeholder="namemail@cdti.ac.th" required>
+                <button type="submit" class="login-primary">Continue</button>
+            </form>
+
+            <form id="login-otp-step" class="login-form" onsubmit="handleLoginOtp(event)" novalidate hidden>
+                <h1>Verify your email</h1>
+                <p>Enter the 6-digit code sent to <strong id="login-otp-email"></strong></p>
+                <label class="visually-hidden" for="login-otp">รหัส OTP</label>
+                <input id="login-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="\d{6}" placeholder="000000" required>
+                <button type="submit" class="login-primary">Continue</button>
+                <button type="button" class="login-link" onclick="showLoginEmailStep()">Use a different email</button>
+            </form>
+
+            <p id="login-status" class="login-status" role="status" aria-live="polite"></p>
+            <p class="login-terms">By clicking continue, you agree to our <strong>Terms of Service</strong> and <strong>Privacy Policy</strong></p>
+        </section>
+
         <header class="app-header">
             <button id="btn-back-from-scanner" class="scanner-back-button" type="button" onclick="closeAppPage()" aria-label="กลับหน้าหลัก">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6M9 12h12"/></svg>
@@ -25,6 +53,7 @@
         </header>
 
         <main class="container">
+            <p id="network-status" class="network-status" role="status" hidden></p>
             <div id="secure-context-warning" class="info-box" style="display: none;">
                 การใช้งานกล้องและ GPS ต้องเปิดเว็บไซต์ผ่าน HTTPS หรือ localhost
             </div>
@@ -58,6 +87,7 @@
                 <div id="qr-result-container" role="status" aria-live="polite">
                     <div class="checkmark-circle" aria-hidden="true">✓</div>
                     <div class="qr-success-text">สแกนสำเร็จ</div>
+                    <p id="attendance-status" class="attendance-status"></p>
                     <div class="qr-data-label">ข้อมูลที่อ่านได้:</div>
                     <div id="qr-data-value" class="qr-data-text"></div>
                 </div>
@@ -79,7 +109,22 @@
                         </span>
                     </button>
                 </div>
-                <p class="biometric-status">สถานะ: <strong id="biometric-status">พร้อมใช้งาน</strong></p>
+                <p class="biometric-status" aria-live="polite">สถานะ: <strong id="biometric-status">พร้อมใช้งาน</strong></p>
+            </section>
+
+            <section id="profile" class="profile-section" aria-label="ข้อมูลส่วนตัว">
+                <dl class="profile-list">
+                    <div class="profile-row"><dt>ชื่อ</dt><dd id="profile-name">-</dd></div>
+                    <div class="profile-row"><dt>อีเมล</dt><dd id="profile-email"></dd></div>
+                    <div class="profile-row"><dt>รหัสนักศึกษา</dt><dd id="profile-student-id"></dd></div>
+                </dl>
+                <div class="profile-history">
+                    <div class="profile-history-head"><h2>ประวัติ</h2><span>วันที่</span></div>
+                    <ul id="attendance-history" class="attendance-history"></ul>
+                    <p id="attendance-empty" class="profile-empty">ยังไม่มีประวัติการเช็คชื่อ</p>
+                </div>
+                <button class="profile-logout" type="button" onclick="logout()">ออกจากระบบ</button>
+                <button class="profile-back" type="button" onclick="closeAppPage()">Back</button>
             </section>
 
             <p class="risk-score">Trust Score : <span>รอข้อมูล</span></p>
@@ -92,7 +137,7 @@
             <a href="#notifications" aria-label="การแจ้งเตือน" class="nav-item" onclick="openNotificationsPage(); return false;">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12a2 2 0 0 0 4 0"/></svg>
             </a>
-            <a href="#biometrics" aria-label="บัญชี" class="nav-item">
+            <a href="#profile" aria-label="ข้อมูลส่วนตัว" class="nav-item" onclick="openProfilePage(); return false;">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
             </a>
         </nav>
@@ -106,7 +151,9 @@
     <script src="qr-code-scanner/index.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/Geofence.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@14.0.0/dist/bundle/index.umd.min.js"></script>
     <script src="js/webauthn.js"></script>
+    <script src="js/attendance.js"></script>
 
     <!-- ลงทะเบียน Service Worker สำหรับ PWA -->
     <script>

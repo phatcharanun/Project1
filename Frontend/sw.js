@@ -1,4 +1,4 @@
-const CACHE_NAME = 'camera-gps-app-v20';
+const CACHE_NAME = 'camera-gps-app-v24';
 
 const APP_SHELL = [
     './',
@@ -13,7 +13,11 @@ const APP_SHELL = [
     './qr-code-scanner/scanner.css',
     './pwa/icons/icon1.svg',
     './pwa/icons/icon2.svg',
-    './js/webauthn.js'
+    './js/webauthn.js',
+    './js/attendance.js',
+    // Same URLs as in index.html: the QR scanner and WebAuthn must load offline.
+    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js',
+    'https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@14.0.0/dist/bundle/index.umd.min.js'
 ];
 
 self.addEventListener('install', event => {
@@ -49,7 +53,8 @@ self.addEventListener('fetch', event => {
 
     // 3. ดึงไฟล์ UI / Static Assets จากแคชก่อน ถ้าไม่มีจึงดึงผ่าน Network
     event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
+        // หน้าเว็บที่มี query string (เช่น /?x=1) ใช้แคชหน้าเดียวกันได้
+        caches.match(event.request, { ignoreSearch: event.request.mode === 'navigate' }).then(cachedResponse => {
             return cachedResponse || fetch(event.request);
         })
     );

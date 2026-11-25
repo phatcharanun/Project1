@@ -14,6 +14,8 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./Backend/init.sql:/docker-entrypoint-initdb.d/init.sql # รันสร้างตารางอัตโนมัติตอนเปิดครั้งแรก
+      - ./Backend/migrations/001_auth.sql:/docker-entrypoint-initdb.d/zz_001_auth.sql # รันหลัง init.sql (เรียงตามชื่อไฟล์)
+      - ./Backend/migrations/002_attendance.sql:/docker-entrypoint-initdb.d/zz_002_attendance.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -34,9 +36,21 @@ services:
       DB_USER: ${POSTGRES_USER:-cams_admin}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-cams_1234}
       DB_NAME: ${POSTGRES_DB:-cams_db}
+      REDIS_URL: redis://redis-cache:6379
+      RP_ID: ${RP_ID:-localhost}
+      WEBAUTHN_ORIGIN: ${WEBAUTHN_ORIGIN:-http://localhost:3000}
+      STUDENT_EMAIL_DOMAIN: ${STUDENT_EMAIL_DOMAIN:-cdti.ac.th}
+      OTP_PEPPER: ${OTP_PEPPER:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     depends_on:
       postgres-postgis:
         condition: service_healthy
+      redis-cache:
+        condition: service_started
     ports:
       - "3000:3000"
 

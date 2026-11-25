@@ -1,7 +1,7 @@
 let videoStream = null;
 
 async function openQRScannerPage() {
-    document.body.classList.remove('notifications-page');
+    document.body.classList.remove('notifications-page', 'profile-page');
     document.body.classList.add('qr-scanner-page');
     document.querySelector('.app-header h1').textContent = 'สแกนคิวอาร์โค้ด';
     document.getElementById('btn-start-camera').onclick = startCamera;
@@ -12,6 +12,7 @@ function openNotificationsPage() {
     if (document.body.classList.contains('qr-scanner-page')) {
         closeQRScannerPage();
     }
+    document.body.classList.remove('profile-page');
     document.body.classList.add('notifications-page');
     document.querySelector('.app-header h1').textContent = 'การแจ้งเตือน';
 }
@@ -21,9 +22,22 @@ function closeNotificationsPage() {
     document.querySelector('.app-header h1').textContent = 'For Students';
 }
 
+function openProfilePage() {
+    if (document.body.classList.contains('qr-scanner-page')) {
+        closeQRScannerPage();
+    }
+    const studentId = localStorage.getItem(STUDENT_ID_KEY) || '';
+    document.getElementById('profile-student-id').textContent = studentId;
+    document.getElementById('profile-email').textContent = studentId ? `${studentId}@${STUDENT_EMAIL_DOMAIN}` : '';
+    document.body.classList.remove('notifications-page');
+    document.body.classList.add('profile-page');
+    document.querySelector('.app-header h1').textContent = 'ข้อมูลส่วนตัว';
+}
+
 function closeAppPage() {
     closeQRScannerPage();
     closeNotificationsPage();
+    document.body.classList.remove('profile-page');
 }
 
 function closeQRScannerPage() {

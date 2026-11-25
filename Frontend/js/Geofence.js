@@ -1,6 +1,6 @@
 let gpsRequestPending = false;
 let activeSessionId = null;
-let lastPosition = null;
+let attendancePending = false; // QR accepted, waiting for a fresh GPS position.
 let geofenceCheckSequence = 0;
 
 const SESSION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -26,17 +26,23 @@ function setGeofenceSessionFromQr(qrData) {
     if (typeof sessionId !== 'string' || !SESSION_ID_PATTERN.test(sessionId)) {
         console.warn('[Geofence] QR session rejected: expected a UUID or JSON with session_id.');
         setGeofenceStatus('QR ไม่มี session_id ที่ถูกต้อง', 'red', false);
+        setAttendanceStatus('QR นี้ไม่ใช่ QR เช็คชื่อ');
         return false;
     }
 
     activeSessionId = sessionId;
     console.log('[Geofence] QR session accepted.');
-    if (lastPosition) {
-        checkGeofence(lastPosition.latitude, lastPosition.longitude);
-    } else {
-        setGeofenceStatus('รับ QR แล้ว กรุณาเปิด GPS', '#555', false);
-    }
+    attendancePending = true;
+    setAttendanceStatus('กำลังระบุตำแหน่ง GPS...');
+    toggleGPS();
     return true;
+}
+
+function showGpsProblem(message) {
+    setGeofenceStatus(message, 'red', false);
+    if (attendancePending) {
+        setAttendanceStatus(`ยังไม่ได้เช็คชื่อ: ${message} กลับหน้าหลักแล้วกดปุ่ม GPS เพื่อลองใหม่`);
+    }
 }
 
 function toggleGPS() {
@@ -46,11 +52,11 @@ function toggleGPS() {
         return;
     }
     if (!window.isSecureContext) {
-        setGeofenceStatus('GPS ต้องใช้งานผ่าน HTTPS หรือ localhost', 'red', false);
+        showGpsProblem('GPS ต้องใช้งานผ่าน HTTPS หรือ localhost');
         return;
     }
     if (!('geolocation' in navigator)) {
-        setGeofenceStatus('อุปกรณ์ไม่รองรับ Geolocation API', 'red', false);
+        showGpsProblem('อุปกรณ์ไม่รองรับ Geolocation API');
         return;
     }
 
@@ -79,7 +85,6 @@ function toggleGPS() {
 function handleSuccess(position) {
     const currentLat = position.coords.latitude;
     const currentLng = position.coords.longitude;
-    lastPosition = { latitude: currentLat, longitude: currentLng };
 
     const map = document.getElementById('location-map');
     const mapCell = `${currentLat.toFixed(4)},${currentLng.toFixed(4)}`;
@@ -92,6 +97,15 @@ function handleSuccess(position) {
         map.dataset.mapCell = mapCell;
     }
 
+    if (attendancePending) {
+        attendancePending = false;
+        recordAttendance(activeSessionId, currentLat, currentLng).catch(recordError => {
+            console.error('[Attendance] Could not save the scan:', recordError);
+            attendancePending = true;
+            showGpsProblem('บันทึกข้อมูลในเครื่องไม่ได้');
+        });
+        return;
+    }
     checkGeofence(currentLat, currentLng);
 }
 
@@ -100,7 +114,7 @@ function handleError(error) {
     const message = error.code === error.PERMISSION_DENIED
         ? 'ผู้ใช้ปฏิเสธการเข้าถึงตำแหน่ง'
         : 'เกิดข้อผิดพลาดในการดึงตำแหน่ง';
-    setGeofenceStatus(message, 'red', false);
+    showGpsProblem(message);
 }
 
 async function checkGeofence(latitude, longitude) {
@@ -171,6 +185,8 @@ async function checkGeofence(latitude, longitude) {
             return;
         }
         console.error(`[Geofence] API request failed (${checkMode}):`, error);
-        setGeofenceStatus('ตรวจสอบพื้นที่ไม่ได้ กรุณาลองใหม่', 'red', false);
+        setGeofenceStatus(navigator.onLine
+            ? 'ตรวจสอบพื้นที่ไม่ได้ กรุณาลองใหม่'
+            : 'ออฟไลน์ จะตรวจพื้นที่เมื่อส่งข้อมูล', 'red', false);
     }
 }

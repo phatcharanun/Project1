@@ -221,6 +221,24 @@ main.container {
 	border: 0;
 }
 
+body.offline .map-frame iframe {
+	visibility: hidden;
+}
+
+.network-status {
+	margin: 0 12px 8px;
+	border-radius: 8px;
+	background: #fff4d6;
+	color: #6b4e00;
+	padding: 8px 12px;
+	font-size: 0.75rem;
+}
+
+.attendance-status {
+	margin-top: 6px;
+	font-weight: 600;
+}
+
 .map-attribution {
 	padding: 3px 3px 0;
 	color: var(--muted);
@@ -296,6 +314,7 @@ main.container {
 
 .scanner-back-button {
 	position: absolute;
+	top: 14px;
 	left: 12px;
 	display: none;
 	width: 36px;
@@ -533,6 +552,10 @@ button {
 	margin-top: 7px;
 }
 
+[hidden] {
+	display: none !important;
+}
+
 .biometric-button {
 	min-height: 38px;
 	justify-content: space-between;
@@ -699,4 +722,217 @@ summary:focus-visible {
 		scroll-behavior: auto !important;
 		transition-duration: 0.01ms !important;
 	}
+}
+
+/* Login (email OTP + device binding) */
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.login-screen {
+	display: none;
+	min-height: inherit;
+	flex-direction: column;
+	align-items: center;
+	padding: 72px 24px 32px;
+	text-align: center;
+}
+
+body.logged-out .login-screen {
+	display: flex;
+}
+
+body.logged-out .app-header,
+body.logged-out main.container,
+body.logged-out .bottom-nav {
+	display: none;
+}
+
+body.logged-out .app-shell {
+	padding-bottom: 0;
+}
+
+.login-brand {
+	margin-bottom: 96px;
+	font-size: 1.6rem;
+	font-weight: 650;
+}
+
+.login-form {
+	display: grid;
+	width: 100%;
+	gap: 12px;
+}
+
+.login-form h1 {
+	font-size: 1.1rem;
+	font-weight: 650;
+}
+
+.login-form p {
+	margin: -8px 0 8px;
+	font-size: 0.9rem;
+}
+
+.login-form input {
+	width: 100%;
+	min-height: 48px;
+	border: 1px solid #dfe1e0;
+	border-radius: 8px;
+	padding: 0 18px;
+	font-size: 1rem;
+}
+
+.login-primary {
+	min-height: 48px;
+	border-radius: 8px;
+	background: #000;
+	color: #fff;
+	font-size: 1rem;
+}
+
+.login-primary:hover {
+	background: #222;
+	transform: none;
+}
+
+.login-link {
+	background: transparent;
+	color: var(--muted);
+	font-size: 0.85rem;
+	text-decoration: underline;
+}
+
+.login-link:hover {
+	background: transparent;
+	transform: none;
+}
+
+.login-status {
+	min-height: 1.6em;
+	margin-top: 12px;
+	color: #b42318;
+	font-size: 0.85rem;
+}
+
+.login-terms {
+	margin-top: 8px;
+	color: var(--muted);
+	font-size: 0.82rem;
+}
+
+.login-terms strong {
+	color: var(--ink);
+	font-weight: 500;
+}
+
+/* Profile page (person icon) */
+.profile-section {
+	display: none;
+	min-height: calc(100vh - 64px);
+	min-height: calc(100dvh - 64px);
+	flex-direction: column;
+	font-size: 0.85rem;
+}
+
+body.profile-page .profile-section {
+	display: flex;
+}
+
+body.profile-page .map-section,
+body.profile-page #scan,
+body.profile-page #biometrics,
+body.profile-page .risk-score,
+body.profile-page .bottom-nav {
+	display: none;
+}
+
+body.profile-page .scanner-back-button {
+	display: grid;
+}
+
+body.profile-page .app-shell {
+	padding-bottom: 0;
+}
+
+.profile-row,
+.profile-history-head {
+	display: grid;
+	grid-template-columns: 96px 1fr;
+	align-items: center;
+	min-height: 48px;
+	border-bottom: 1px solid #ececec;
+	padding: 0 16px;
+	text-align: left;
+}
+
+.profile-row dt,
+.profile-history-head h2 {
+	font-size: 0.8rem;
+	font-weight: 500;
+}
+
+.profile-row dd {
+	overflow-wrap: anywhere;
+}
+
+.profile-history {
+	border-bottom: 1px solid #ececec;
+	padding-bottom: 12px;
+}
+
+.profile-history-head {
+	border-bottom: 0;
+}
+
+.profile-empty {
+	padding: 4px 16px 0 112px;
+	color: var(--muted);
+}
+
+.attendance-history {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.attendance-history li {
+	display: grid;
+	grid-template-columns: 96px 1fr;
+	padding: 6px 16px;
+	overflow-wrap: anywhere;
+}
+
+.profile-logout {
+	margin-top: auto;
+	align-self: flex-start;
+	background: transparent;
+	color: var(--ink);
+	padding: 16px;
+	font-size: 0.8rem;
+}
+
+.profile-logout:hover {
+	background: transparent;
+	color: #b42318;
+	transform: none;
+}
+
+.profile-back {
+	margin: 0 16px calc(16px + env(safe-area-inset-bottom));
+	min-height: 48px;
+	border-radius: 8px;
+	background: #000;
+	color: #fff;
+	font-size: 1rem;
+}
+
+.profile-back:hover {
+	background: #222;
+	transform: none;
 }
