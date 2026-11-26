@@ -13,8 +13,8 @@ function createAttendanceRouter({ pool, redis }) {
     const router = express.Router();
 
     // elapsed_ms is the age of the scan on the student's own clock, so a wrong device clock does not matter.
-    // A student can fake it, so only a fresh scan in a session that is open right now becomes PASSED;
-    // anything older is FLAGGED for review.
+    // A student can fake it, so only a fresh scan inside the area of a session that is open right now
+    // becomes PASSED; a late or outside scan is FLAGGED for review, not refused.
     router.post('/', async (req, res, next) => {
         const {
             student_id: studentId, session_id: sessionId, latitude, longitude, elapsed_ms: elapsedMs
@@ -51,9 +51,7 @@ function createAttendanceRouter({ pool, redis }) {
                     s.valid_time_range @> NOW() AS active,
                     s.valid_time_range @> scan.scanned_at AS scanned_in_time,
                     COALESCE(upper(s.valid_time_range) + $6::int * INTERVAL '1 hour' >= NOW(), TRUE) AS sync_open,
-                    point_in_geofence(scan.point, s.geofence_polygon) AS inside,
-                    ST_Distance(scan.point::geography, ST_Boundary(s.geofence_polygon)::geography)
-                        AS distance_meters
+                    point_in_geofence(scan.point, s.geofence_polygon) AS inside
                 FROM attendance_session s
                 CROSS JOIN scan
                 LEFT JOIN attendance_log l ON l.session_id = s.session_id AND l.external_user_id = $5
@@ -64,27 +62,29 @@ function createAttendanceRouter({ pool, redis }) {
             if (!session) {
                 return res.status(404).json({ error: 'SESSION_NOT_FOUND' });
             }
+            const status = session.active && session.scanned_in_time && session.inside
+                && elapsedMs <= LIVE_MAX_ELAPSED_MS ? 'PASSED' : 'FLAGGED';
             // Checked first: a retry after a lost response must succeed even when the sync window has closed.
-            if (session.existing_status) {
+            // A student flagged outside may still walk in and scan again to pass.
+            const canUpgrade = session.existing_status === 'FLAGGED' && status === 'PASSED';
+            if (session.existing_status && !canUpgrade) {
                 return res.json({ status: session.existing_status, course_id: session.course_id, duplicate: true });
             }
             if (!session.scanned_in_time || !session.sync_open) {
                 return res.status(410).json({ error: 'SESSION_NOT_ACTIVE' });
             }
-            if (!session.inside) {
-                return res.status(422).json({
-                    error: 'OUTSIDE_GEOFENCE', distance_meters: session.distance_meters
-                });
-            }
 
-            const status = session.active && elapsedMs <= LIVE_MAX_ELAPSED_MS ? 'PASSED' : 'FLAGGED';
             // shortcut: fixed risk scores, replace when the Trust Score model exists.
             const riskScore = status === 'PASSED' ? 0 : 0.5;
             const inserted = await pool.query(
                 `INSERT INTO attendance_log
                     (session_id, external_user_id, provider_used, risk_score, location_point, status, scanned_at)
                  VALUES ($1, $2, 'WEBAUTHN', $3, ST_SetSRID(ST_MakePoint($4, $5), 4326), $6, $7)
-                 ON CONFLICT (session_id, external_user_id) DO NOTHING
+                 ON CONFLICT (session_id, external_user_id) DO UPDATE
+                    SET risk_score = EXCLUDED.risk_score, location_point = EXCLUDED.location_point,
+                        status = EXCLUDED.status, scanned_at = EXCLUDED.scanned_at, created_at = NOW()
+                    WHERE attendance_log.status = 'FLAGGED' AND attendance_log.override_by IS NULL
+                        AND EXCLUDED.status = 'PASSED'
                  RETURNING status`,
                 [sessionId, studentId, riskScore, longitude, latitude, status, session.scanned_at]
             );

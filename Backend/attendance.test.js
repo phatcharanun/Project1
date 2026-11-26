@@ -14,7 +14,7 @@ const scan = {
 };
 const openSession = {
     course_id: 'CS101', existing_status: null, scanned_at: new Date(),
-    active: true, scanned_in_time: true, sync_open: true, inside: true, distance_meters: 0
+    active: true, scanned_in_time: true, sync_open: true, inside: true
 };
 const servers = [];
 
@@ -61,11 +61,29 @@ test('a late sync is flagged, whether or not the session is still open', async (
     assert.equal((await submit({ session: { ...openSession, active: false } })).body.status, 'FLAGGED');
 });
 
-test('scans outside the session time, sync window or area are not logged', async () => {
+test('a scan outside the area is flagged, not refused', async () => {
+    const res = await submit({ session: { ...openSession, inside: false } });
+    assert.equal(res.status, 201);
+    assert.equal(res.body.status, 'FLAGGED');
+    assert.equal(res.inserts.length, 1);
+});
+
+test('only a fresh scan inside the area upgrades a flagged result', async () => {
+    const flagged = { ...openSession, existing_status: 'FLAGGED' };
+    const upgraded = await submit({ session: flagged });
+    assert.equal(upgraded.body.status, 'PASSED');
+    assert.equal(upgraded.inserts.length, 1);
+    for (const change of [{ inside: false }, { active: false }]) {
+        const res = await submit({ session: { ...flagged, ...change } });
+        assert.equal(res.body.status, 'FLAGGED');
+        assert.equal(res.inserts.length, 0);
+    }
+});
+
+test('scans outside the session time or sync window are not logged', async () => {
     const rejected = [
         [{ scanned_in_time: false }, 410, 'SESSION_NOT_ACTIVE'],
-        [{ sync_open: false }, 410, 'SESSION_NOT_ACTIVE'],
-        [{ inside: false }, 422, 'OUTSIDE_GEOFENCE']
+        [{ sync_open: false }, 410, 'SESSION_NOT_ACTIVE']
     ];
     for (const [change, status, error] of rejected) {
         const res = await submit({ session: { ...openSession, ...change } });

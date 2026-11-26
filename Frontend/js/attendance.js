@@ -15,7 +15,7 @@ const ATTENDANCE_LABELS = {
 const ATTENDANCE_REJECTIONS = {
     SESSION_NOT_FOUND: 'ไม่พบรอบเช็คชื่อนี้',
     SESSION_NOT_ACTIVE: 'อยู่นอกเวลาเช็คชื่อหรือเกินเวลาส่งข้อมูล',
-    OUTSIDE_GEOFENCE: 'อยู่นอกเขตพื้นที่',
+    OUTSIDE_GEOFENCE: 'อยู่นอกเขตพื้นที่', // No longer sent; labels scans refused before this changed.
     INVALID_SESSION_ID: 'ข้อมูล QR ไม่ถูกต้อง',
     INVALID_LATITUDE: 'ตำแหน่งไม่ถูกต้อง',
     INVALID_LONGITUDE: 'ตำแหน่งไม่ถูกต้อง',
