@@ -1,4 +1,4 @@
-const CACHE_NAME = 'camera-gps-app-v24';
+const CACHE_NAME = 'camera-gps-app-v25';
 
 const APP_SHELL = [
     './',
@@ -13,11 +13,12 @@ const APP_SHELL = [
     './qr-code-scanner/scanner.css',
     './pwa/icons/icon1.svg',
     './pwa/icons/icon2.svg',
+    './pwa/icons/icon-192.png',
+    './pwa/icons/icon-512.png',
     './js/webauthn.js',
     './js/attendance.js',
-    // Same URLs as in index.html: the QR scanner and WebAuthn must load offline.
-    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js',
-    'https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@14.0.0/dist/bundle/index.umd.min.js'
+    './vendor/jsQR.js',
+    './vendor/simplewebauthn-browser.umd.min.js'
 ];
 
 self.addEventListener('install', event => {

@@ -8,6 +8,7 @@
     <!-- เชื่อมต่อ Manifest สำหรับ PWA -->
     <link rel="manifest" href="pwa/manifest.json">
     <link rel="icon" type="image/svg+xml" href="pwa/icons/icon1.svg">
+    <link rel="apple-touch-icon" href="pwa/icons/icon-192.png">
     <meta name="theme-color" content="#ffffff">
     
     <!-- นำเข้าสไตล์ CSS -->
@@ -145,19 +146,23 @@
     <span id="home" class="home-anchor" aria-hidden="true"></span>
 
     <!-- เรียกใช้งานสคริปต์ JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="vendor/jsQR.js"></script>
     <script src="qr-code-scanner/config.js"></script>
     <script src="qr-code-scanner/scanner.js"></script>
     <script src="qr-code-scanner/index.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/Geofence.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@14.0.0/dist/bundle/index.umd.min.js"></script>
+    <script src="vendor/simplewebauthn-browser.umd.min.js"></script>
     <script src="js/webauthn.js"></script>
     <script src="js/attendance.js"></script>
 
     <!-- ลงทะเบียน Service Worker สำหรับ PWA -->
     <script>
         if ('serviceWorker' in navigator) {
+            // The page loaded from the old cache: reload once so a new version takes effect now.
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
+            }
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('Service Worker ลงทะเบียนสำเร็จ:', reg.scope))

@@ -140,9 +140,13 @@ async function sendPendingScans() {
         } else if (ATTENDANCE_REJECTIONS[result.error]) {
             scan.status = 'FAILED';
             scan.error = result.error;
-        } else {
-            attendanceProblem = ['LOGIN_REQUIRED', 'STUDENT_MISMATCH'].includes(result.error) ? 'LOGIN' : 'SERVER';
+        } else if (['LOGIN_REQUIRED', 'STUDENT_MISMATCH'].includes(result.error)) {
+            attendanceProblem = 'LOGIN';
             return;
+        } else {
+            // This scan stays queued for the next retry, but must not hold back the scans after it.
+            attendanceProblem = 'SERVER';
+            continue;
         }
         await withScans('readwrite', store => store.put(scan));
     }
